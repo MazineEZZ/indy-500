@@ -14,9 +14,10 @@ import {
   Button,
 } from "../ui/ui.js";
 import { TooltipManager, Tooltip } from "../ui/tooltip.js";
-import { gameState } from "../states/gameState.js";
 import { DebugOverlay } from "../systems/debug.js";
 import { AssetManager } from "../systems/assets.js";
+import { pausedState, playState, menuState } from "../states/gameState.js";
+import { StateManager } from "../systems/states.js";
 
 class Game {
   constructor(canvas) {
@@ -43,7 +44,12 @@ class Game {
     };
 
     // Game State
-    gameState.setCurrentState(gameState.states.menu);
+    this.gameState = new StateManager({
+      paused: pausedState,
+      menu: menuState,
+      play: playState,
+    });
+    this.gameState.push(menuState);
 
     // Initial Setup
     this.canvas.width = gameSettings.width;
@@ -74,7 +80,7 @@ class Game {
     });
     window.addEventListener("keydown", (e) => {
       if (!this.inputs.isDown("pause_game")) return;
-      gameState.handleEvent("togglePause", this);
+      this.gameState.handleEvent("togglePause", this);
     });
     window.addEventListener("resize", () => {
       this.resizeCanvas();
@@ -154,7 +160,7 @@ class Game {
     this.menuUI.register(startGameBtn);
 
     this.events.on("gameStarted", (event) => {
-      gameState.handleEvent(event, this);
+      this.gameState.handleEvent(event, this);
     });
   }
   loadPauseUI() {
@@ -192,7 +198,9 @@ class Game {
     this.pauseUI.register(menuBtn);
 
     this.events.on("gameMenu", (event) => {
-      gameState.handleEvent(event, this);
+      this.gameState.handleEvent(event, this);
+      this.gameState.clear();
+      this.gameState.push(menuState);
     });
   }
   loadPlayUI() {
@@ -209,7 +217,7 @@ class Game {
     this.tooltips.register(
       playerHealthBar,
       "This is a player's healthbar",
-      gameState.states.play,
+      this.gameState.states.play,
     );
 
     this.playUI.register(playerHealthBar);
@@ -233,7 +241,9 @@ class Game {
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    gameState.currentState.draw(this);
+    for (const state of this.gameState.stack) {
+      state.draw(this);
+    }
 
     // debug
     this.debugOverlay.drawScreenStats(this.ctx);
@@ -241,12 +251,12 @@ class Game {
     this.tooltips.draw(this.ctx);
   }
   update(dt) {
-    gameState.currentState.update(dt, this);
+    this.gameState.peek().update(dt, this);
 
     // Debug
     this.debugOverlay.update(dt, this.clientMouse);
     // Tooltip
-    this.tooltips.update(dt, this.clientMouse, gameState.currentState);
+    this.tooltips.update(dt, this.clientMouse, this.gameState.currentState);
     // Reset Mouse Click Pos
     this.clientMouse.lastClickPos = { x: -10, y: -10 };
   }

@@ -67,10 +67,4 @@ const playState = new State(
   },
 );
 
-const gameState = new StateManager({
-  paused: pausedState,
-  menu: menuState,
-  play: playState,
-});
-
-export { gameState };
+export { pausedState, menuState, playState };
