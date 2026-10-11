@@ -9,14 +9,18 @@ class DebugOverlay {
     this.entities = entities;
     this.collisions = collisions;
 
-    // Own Properties
+    // Screen Stats
     this.fps = 0;
     this.frames = 1 / 60;
     this.multiplier = 2 / (30 + 1);
     this.timer = 0;
 
+    // Hitbox
     this.isTracking = false;
     this.trackedEntity = {};
+
+    // Grid
+    this.cellSize = gameSettings.cellSize;
 
     // UI
     this.debugColor = "green";
@@ -75,6 +79,26 @@ class DebugOverlay {
 
     this.fpsLabel.draw(ctx);
     this.countLabel.draw(ctx);
+  }
+  drawGrid(ctx) {
+    if (!this.isOn) return;
+    ctx.save();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 6;
+
+    for (let i = 0; i < gameSettings.width; i += this.cellSize) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, gameSettings.height);
+      ctx.stroke();
+    }
+    for (let i = 0; i < gameSettings.height; i += this.cellSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(gameSettings.width, i);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
   drawHitboxes(ctx) {
     if (!this.isOn) return;

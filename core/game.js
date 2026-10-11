@@ -14,10 +14,9 @@ import {
   Button,
 } from "../ui/ui.js";
 import { TooltipManager, Tooltip } from "../ui/tooltip.js";
-import { Hazard } from "../entities/hazard.js";
-import { DebugOverlay } from "../systems/debug.js";
-import { Barrier } from "../entities/barrier.js";
 import { gameState } from "../states/gameState.js";
+import { DebugOverlay } from "../systems/debug.js";
+import { AssetManager } from "../systems/assets.js";
 
 class Game {
   constructor(canvas) {
@@ -35,6 +34,7 @@ class Game {
       this.collisions,
       this.inputs,
     );
+    this.assetManager = new AssetManager();
     this.lastTime = null;
     this.animationFrameId = null;
     this.clientMouse = {
@@ -101,23 +101,6 @@ class Game {
     this.canvas.style.height = h + "px";
     this.canvas.style.margin = margin + "px";
   }
-  debugGrid() {
-    this.ctx.strokeStyle = "#000";
-    this.ctx.lineWidth = 6;
-
-    for (let i = 0; i < gameSettings.width; i += gameSettings.grid) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(i, 0);
-      this.ctx.lineTo(i, gameSettings.height);
-      this.ctx.stroke();
-    }
-    for (let i = 0; i < gameSettings.height; i += gameSettings.grid) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, i);
-      this.ctx.lineTo(gameSettings.width, i);
-      this.ctx.stroke();
-    }
-  }
   loadPlayState() {
     this.player = new Player(
       "player",
@@ -136,16 +119,6 @@ class Game {
     );
     this.collisions.register(this.player);
     this.entities.register(this.player);
-
-    this.tooltips.register(
-      this.player,
-      "This is a long test text, to see whether the tooltip wraps text or not.",
-      gameState.states.play,
-    );
-
-    const obstacle = new Barrier("barrier", 200, 100, 50, 50, 3, "brown");
-    this.entities.register(obstacle);
-    this.collisions.register(obstacle);
   }
 
   loadMenuUI() {
@@ -217,6 +190,10 @@ class Game {
 
     this.pauseUI.register(pauseText);
     this.pauseUI.register(menuBtn);
+
+    this.events.on("gameMenu", (event) => {
+      gameState.handleEvent(event, this);
+    });
   }
   loadPlayUI() {
     this.playUI = new UILayer();
@@ -241,18 +218,20 @@ class Game {
       playerHealthBar.setValue(current, max),
     );
   }
-  init() {
+  async init() {
+    // Load assets
+    await Promise.all([]);
+
+    // Game Systems
     this.loadPlayState();
 
+    // User Interface
     this.loadPlayUI();
     this.loadPauseUI();
     this.loadMenuUI();
   }
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    // Background
-    this.ctx.fillStyle = gameSettings.bgColor;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     gameState.currentState.draw(this);
 
@@ -260,15 +239,14 @@ class Game {
     this.debugOverlay.drawScreenStats(this.ctx);
     // Tooltip
     this.tooltips.draw(this.ctx);
-    // this.debugGrid();
   }
   update(dt) {
     gameState.currentState.update(dt, this);
 
-    // Tooltip
-    this.tooltips.update(dt, this.clientMouse, gameState.currentState);
     // Debug
     this.debugOverlay.update(dt, this.clientMouse);
+    // Tooltip
+    this.tooltips.update(dt, this.clientMouse, gameState.currentState);
     // Reset Mouse Click Pos
     this.clientMouse.lastClickPos = { x: -10, y: -10 };
   }
