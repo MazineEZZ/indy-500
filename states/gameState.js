@@ -6,10 +6,12 @@ const pausedState = new State(
     {
       event: "togglePause",
       state: "play",
+      action: "pop",
     },
     {
       event: "gameMenu",
       state: "menu",
+      action: "clear",
     },
   ],
   {
@@ -29,6 +31,7 @@ const menuState = new State(
     {
       event: "gameStarted",
       state: "play",
+      action: "clear",
     },
   ],
   {
@@ -45,6 +48,7 @@ const playState = new State(
     {
       event: "togglePause",
       state: "paused",
+      action: "push",
     },
   ],
   {

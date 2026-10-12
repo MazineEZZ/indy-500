@@ -126,7 +126,6 @@ class Game {
     this.collisions.register(this.player);
     this.entities.register(this.player);
   }
-
   loadMenuUI() {
     this.menuUI = new UILayer();
 
@@ -256,7 +255,7 @@ class Game {
     // Debug
     this.debugOverlay.update(dt, this.clientMouse);
     // Tooltip
-    this.tooltips.update(dt, this.clientMouse, this.gameState.currentState);
+    this.tooltips.update(dt, this.clientMouse, this.gameState.peek());
     // Reset Mouse Click Pos
     this.clientMouse.lastClickPos = { x: -10, y: -10 };
   }

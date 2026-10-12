@@ -31,11 +31,26 @@ class StateManager {
     }
     for (const trans of this.peek().transitions) {
       if (trans.event === event) {
-        // THere is a problem with the current implementation here
-        // In some cases, it can push the state twice.
-        this.peek().onExit(game);
-        this.push(this.states[trans.state]);
-        this.peek().onEnter(game);
+        const state = this.states[trans.state];
+
+        switch (trans.action) {
+          case "push":
+            this.push(state);
+            this.peek().onEnter(game);
+            break;
+          case "pop":
+            this.peek().onExit(game);
+            this.pop();
+            break;
+          case "clear":
+            for (let i = this.stack.length - 1; i >= 0; i--) {
+              this.stack[i].onExit(game);
+            }
+            this.clear();
+            this.push(state);
+            this.peek().onEnter(game);
+            break;
+        }
         return "Transition Successful";
       }
     }
