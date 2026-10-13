@@ -1,11 +1,6 @@
-import { isMouseOverlapping } from "../ui/ui";
-
 class Inputs {
-  constructor(bindings, mouse, entities, ui) {
+  constructor(bindings) {
     this.bindings = bindings;
-    this.mouse = mouse;
-    this.ui = ui;
-    this.entities = entities;
     this.keys = {};
   }
   setUpInputs() {
@@ -35,18 +30,6 @@ class Inputs {
       return true;
     }
     return false;
-  }
-  isClicked(element) {
-    const elements = [...this.ui.elements, ...this.entities.elements];
-    for (let i = elements.length - 1; i >= 0; i--) {
-      if (isMouseOverlapping(elements[i], this.mouse.lastClickPos)) {
-        return elements[i] === element;
-      }
-    }
-    return false;
-  }
-  update(dt, mouse) {
-    this.mouse = mouse;
   }
 }
 

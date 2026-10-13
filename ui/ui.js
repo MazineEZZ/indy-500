@@ -159,12 +159,12 @@ class Button extends UIElement {
   }
   update(dt, mouse) {
     if (!this.visible) return;
-    if (isMouseOverlapping(this, mouse.position)) {
+    if (isMouseOverlapping(this, mouse.currPos)) {
       this.color = this.hoverClr;
     } else {
       this.color = this.unhoverClr;
     }
-    if (isMouseOverlapping(this, mouse.lastClickPos)) {
+    if (this.clientMouse.isClicked()) {
       this.events.emit(this.event, this.event);
     }
   }
@@ -320,7 +320,7 @@ class Slider extends UIElement {
   }
   update(dt, mouse) {
     if (mouse.isDown && this.isKnobClicked) {
-      this.knob.position.x = mouse.position.x + this.diff;
+      this.knob.position.x = mouse.currPos.x + this.diff;
     } else {
       this.isKnobClicked = false;
     }

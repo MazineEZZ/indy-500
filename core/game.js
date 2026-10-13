@@ -18,6 +18,7 @@ import { DebugOverlay } from "../systems/debug.js";
 import { AssetManager } from "../systems/assets.js";
 import { pausedState, playState, menuState } from "../states/gameState.js";
 import { StateManager } from "../systems/states.js";
+import { ClientMouse } from "../systems/clientMouse.js";
 
 class Game {
   constructor(canvas) {
@@ -32,11 +33,8 @@ class Game {
     this.assetManager = new AssetManager();
     this.lastTime = null;
     this.animationFrameId = null;
-    this.clientMouse = {
-      position: { x: -10, y: -10 },
-      lastClickPos: { x: -10, y: -10 },
-    };
-    this.inputs = new Inputs(inputBindings, this.clientMouse);
+    this.clientMouse = new ClientMouse(this.canvas);
+    this.inputs = new Inputs(inputBindings);
     this.debugOverlay = new DebugOverlay(
       this.entities,
       this.collisions,
@@ -56,28 +54,13 @@ class Game {
     this.canvas.height = gameSettings.height;
 
     this.audio.adjustVolume();
+    this.clientMouse.setUpMouseListeners();
     this.inputs.setUpInputs();
     this.resizeCanvas();
 
     this.setUpEventListeners();
   }
-  getScaledMousePos(e) {
-    return {
-      x: e.offsetX * (this.canvas.width / this.canvas.clientWidth),
-      y: e.offsetY * (this.canvas.height / this.canvas.clientHeight),
-    };
-  }
   setUpEventListeners() {
-    this.canvas.addEventListener("mousedown", (e) => {
-      this.clientMouse.lastClickPos = this.getScaledMousePos(e);
-      this.clientMouse.isDown = true;
-    });
-    this.canvas.addEventListener("mouseup", (e) => {
-      this.clientMouse.isDown = false;
-    });
-    this.canvas.addEventListener("mousemove", (e) => {
-      this.clientMouse.position = this.getScaledMousePos(e);
-    });
     window.addEventListener("keydown", (e) => {
       if (!this.inputs.isDown("pause_game")) return;
       this.gameState.handleEvent("togglePause", this);
@@ -143,6 +126,7 @@ class Game {
       30,
       4,
       this.events,
+      this.inputs,
       "gameStarted",
       {
         btnBorderSize: "4px",
@@ -183,6 +167,7 @@ class Game {
       40,
       4,
       this.events,
+      this.inputs,
       "gameMenu",
       {
         btnBorderColor: "black",
@@ -255,13 +240,13 @@ class Game {
     this.gameState.peek().update(dt, this);
 
     // Inputs
-    this.inputs.update(dt, this.clientMouse);
+    this.inputs.update(dt, this.clientMouse.mouse);
     // Debug
-    this.debugOverlay.update(dt, this.clientMouse);
+    this.debugOverlay.update(dt, this.clientMouse.mouse);
     // Tooltip
-    this.tooltips.update(dt, this.clientMouse, this.gameState.peek());
+    this.tooltips.update(dt, this.clientMouse.mouse, this.gameState.peek());
     // Reset Mouse Click Pos
-    this.clientMouse.lastClickPos = { x: -10, y: -10 };
+    this.clientMouse.resetClick();
   }
   gameLoop() {
     const loop = (timestamp) => {
@@ -283,14 +268,6 @@ class Game {
     cancelAnimationFrame(this.animationFrameId);
     this.animationFrameId = null;
     this.lastTime = null;
-  }
-  restart() {
-    this.stop();
-    this.score = 0;
-    this.entities = new EntityRegistry();
-    this.collisions = new CollisionSystem();
-    this.events = new EventBus();
-    this.start();
   }
 }
 

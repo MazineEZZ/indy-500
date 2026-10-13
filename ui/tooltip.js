@@ -39,7 +39,7 @@ class TooltipManager {
   }
   update(dt, mouse, state) {
     for (const te of this.trackedEntities) {
-      if (isMouseOverlapping(te.entity, mouse.position) && te.state === state) {
+      if (isMouseOverlapping(te.entity, mouse.currPos) && te.state === state) {
         const offset = 10;
         this.tooltip.position.x =
           te.entity.position.x + te.entity.width + offset;
