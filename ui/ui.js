@@ -157,14 +157,14 @@ class Button extends UIElement {
       fontSrc,
     });
   }
-  update(dt, mouse) {
+  update(dt, clientMouse) {
     if (!this.visible) return;
-    if (isMouseOverlapping(this, mouse.currPos)) {
+    if (isMouseOverlapping(this, clientMouse.mouse.currPos)) {
       this.color = this.hoverClr;
     } else {
       this.color = this.unhoverClr;
     }
-    if (this.clientMouse.isClicked()) {
+    if (clientMouse.isClicked(this)) {
       this.events.emit(this.event, this.event);
     }
   }
@@ -200,8 +200,8 @@ class Checkbox extends UIElement {
     this.checkedColor = checkedColor;
     this.inCheck = false;
   }
-  update(dt, mouse) {
-    if (isMouseOverlapping(this, mouse.lastClickPos)) {
+  update(dt, clientMouse) {
+    if (isMouseOverlapping(this, clientMouse.mouse.lastClickPos)) {
       this.inCheck = !this.inCheck;
     }
   }
@@ -318,14 +318,14 @@ class Slider extends UIElement {
       },
     };
   }
-  update(dt, mouse) {
-    if (mouse.isDown && this.isKnobClicked) {
-      this.knob.position.x = mouse.currPos.x + this.diff;
+  update(dt, clientMouse) {
+    if (clientMouse.mouse.isDown && this.isKnobClicked) {
+      this.knob.position.x = clientMouse.mouse.currPos.x + this.diff;
     } else {
       this.isKnobClicked = false;
     }
-    if (isMouseOverlapping(this.knob, mouse.lastClickPos, true)) {
-      this.diff = this.knob.position.x - mouse.lastClickPos.x;
+    if (isMouseOverlapping(this.knob, clientMouse.mouse.lastClickPos, true)) {
+      this.diff = this.knob.position.x - clientMouse.mouse.lastClickPos.x;
       this.isKnobClicked = true;
     }
 

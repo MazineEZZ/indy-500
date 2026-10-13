@@ -1,10 +1,11 @@
 class State {
-  constructor(transitions, { onEnter, onExit, update, draw } = {}) {
+  constructor(transitions, { onEnter, onExit, update, draw, ui } = {}) {
     this.transitions = transitions;
     this.onEnter = onEnter || (() => {});
     this.onExit = onExit || (() => {});
     this.update = update || (() => {});
     this.draw = draw || (() => {});
+    this.ui = ui || null;
   }
 }
 

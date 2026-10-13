@@ -19,7 +19,7 @@ const pausedState = new State(
       game.events.emit("gamePaused");
     },
     update: (dt, game) => {
-      game.pauseUI.update(dt, game.clientMouse.mouse);
+      game.pauseUI.update(dt, game.clientMouse);
     },
     draw: (game) => {
       game.pauseUI.draw(game.ctx);
@@ -36,7 +36,7 @@ const menuState = new State(
   ],
   {
     update: (dt, game) => {
-      game.menuUI.update(dt, game.clientMouse.mouse);
+      game.menuUI.update(dt, game.clientMouse);
     },
     draw: (game) => {
       game.menuUI.draw(game.ctx);
@@ -57,7 +57,7 @@ const playState = new State(
       // Entities
       game.entities.update(dt);
       // UI
-      game.playUI.update(dt, game.clientMouse.mouse);
+      game.playUI.update(dt, game.clientMouse);
     },
     draw: (game) => {
       // Entities

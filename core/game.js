@@ -47,7 +47,6 @@ class Game {
       menu: menuState,
       play: playState,
     });
-    this.gameState.push(menuState);
 
     // Initial Setup
     this.canvas.width = gameSettings.width;
@@ -63,7 +62,7 @@ class Game {
   setUpEventListeners() {
     window.addEventListener("keydown", (e) => {
       if (!this.inputs.isDown("pause_game")) return;
-      this.gameState.handleEvent("togglePause", this);
+      this.events.emit("togglePause");
     });
     window.addEventListener("resize", () => {
       this.resizeCanvas();
@@ -111,6 +110,7 @@ class Game {
   }
   loadMenuUI() {
     this.menuUI = new UILayer();
+    this.gameState.states.menu.ui = this.menuUI;
 
     const title = new Label(gameSettings.width / 2, 200, {
       text: "Menu!",
@@ -126,7 +126,6 @@ class Game {
       30,
       4,
       this.events,
-      this.inputs,
       "gameStarted",
       {
         btnBorderSize: "4px",
@@ -144,10 +143,12 @@ class Game {
 
     this.events.on("gameStarted", (event) => {
       this.gameState.handleEvent(event, this);
+      this.events.emit("stateChanged");
     });
   }
   loadPauseUI() {
     this.pauseUI = new UILayer();
+    this.gameState.states.paused.ui = this.pauseUI;
 
     const pauseText = new Label(
       gameSettings.width / 2,
@@ -167,7 +168,6 @@ class Game {
       40,
       4,
       this.events,
-      this.inputs,
       "gameMenu",
       {
         btnBorderColor: "black",
@@ -185,10 +185,16 @@ class Game {
       this.gameState.handleEvent(event, this);
       this.gameState.clear();
       this.gameState.push(menuState);
+      this.events.emit("stateChanged");
+    });
+    this.events.on("togglePause", () => {
+      this.gameState.handleEvent("togglePause", this);
+      this.events.emit("stateChanged");
     });
   }
   loadPlayUI() {
     this.playUI = new UILayer();
+    this.gameState.states.play.ui = this.playUI;
 
     const playerHealthBar = new ResourceBar(
       20,
@@ -206,8 +212,6 @@ class Game {
 
     this.playUI.register(playerHealthBar);
 
-    // this.inputs.handleMouse();
-
     this.events.on("playerHealthChanged", ({ current, max }) =>
       playerHealthBar.setValue(current, max),
     );
@@ -223,6 +227,18 @@ class Game {
     this.loadPlayUI();
     this.loadPauseUI();
     this.loadMenuUI();
+
+    // Game Events
+    this.events.on("stateChanged", () => {
+      this.clientMouse.updateElements(
+        this.gameState.peek().ui.elements,
+        this.entities.elements,
+      );
+    });
+
+    // State Management
+    this.gameState.push(menuState);
+    this.events.emit("stateChanged");
   }
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -239,12 +255,10 @@ class Game {
   update(dt) {
     this.gameState.peek().update(dt, this);
 
-    // Inputs
-    this.inputs.update(dt, this.clientMouse.mouse);
     // Debug
-    this.debugOverlay.update(dt, this.clientMouse.mouse);
+    this.debugOverlay.update(dt, this.clientMouse);
     // Tooltip
-    this.tooltips.update(dt, this.clientMouse.mouse, this.gameState.peek());
+    this.tooltips.update(dt, this.clientMouse, this.gameState.peek());
     // Reset Mouse Click Pos
     this.clientMouse.resetClick();
   }

@@ -1,11 +1,8 @@
 import { isMouseOverlapping } from "../ui/ui.js";
 
 class ClientMouse {
-  constructor(canvas, ui, entities) {
+  constructor(canvas) {
     this.canvas = canvas;
-
-    this.ui = ui;
-    this.entities = entities;
 
     this._default = { x: -10, y: -10 };
     this.mouse = {
@@ -13,6 +10,8 @@ class ClientMouse {
       lastClickPos: this._default,
       isDown: false,
     };
+
+    this.elements = [];
   }
   getScaledMousePos(e) {
     return {
@@ -36,13 +35,17 @@ class ClientMouse {
     this.mouse.lastClickPos = this._default;
   }
   isClicked(element) {
-    const elements = [...this.ui.elements, ...this.entities.elements];
-    for (let i = elements.length - 1; i >= 0; i--) {
-      if (isMouseOverlapping(elements[i], this.mouse.lastClickPos)) {
-        return elements[i] === element;
+    for (let i = this.elements.length - 1; i >= 0; i--) {
+      if (isMouseOverlapping(this.elements[i], this.mouse.lastClickPos)) {
+        return this.elements[i] === element;
       }
     }
     return false;
+  }
+  updateElements(uis, entities) {
+    this.elements.length = 0;
+    this.elements.push(...uis);
+    this.elements.push(...entities);
   }
 }
 
