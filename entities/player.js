@@ -57,17 +57,14 @@ class Player extends Rect {
       });
     }
 
-    // if (dir.x || dir.y) this.animation.select("run");
-    // else this.animation.select("idle");
-
     const normalized = dir.normalize();
     this.position.x += normalized.x * this.speed * delta;
     this.position.y += normalized.y * this.speed * delta;
 
-    // this.keepInBounds({
-    //   width: gameSettings.width,
-    //   height: gameSettings.height,
-    // });
+    this.keepInBounds({
+      width: gameSettings.width,
+      height: gameSettings.height,
+    });
 
     // this.animation.update(delta);
 

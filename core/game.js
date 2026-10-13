@@ -27,14 +27,8 @@ class Game {
     this.collisions = new CollisionSystem();
     this.entities = new EntityRegistry();
     this.audio = new AudioSystem();
-    this.inputs = new Inputs(inputBindings);
     this.events = new EventBus();
     this.tooltips = new TooltipManager();
-    this.debugOverlay = new DebugOverlay(
-      this.entities,
-      this.collisions,
-      this.inputs,
-    );
     this.assetManager = new AssetManager();
     this.lastTime = null;
     this.animationFrameId = null;
@@ -42,6 +36,12 @@ class Game {
       position: { x: -10, y: -10 },
       lastClickPos: { x: -10, y: -10 },
     };
+    this.inputs = new Inputs(inputBindings, this.clientMouse);
+    this.debugOverlay = new DebugOverlay(
+      this.entities,
+      this.collisions,
+      this.inputs,
+    );
 
     // Game State
     this.gameState = new StateManager({
@@ -221,6 +221,8 @@ class Game {
 
     this.playUI.register(playerHealthBar);
 
+    // this.inputs.handleMouse();
+
     this.events.on("playerHealthChanged", ({ current, max }) =>
       playerHealthBar.setValue(current, max),
     );
@@ -252,6 +254,8 @@ class Game {
   update(dt) {
     this.gameState.peek().update(dt, this);
 
+    // Inputs
+    this.inputs.update(dt, this.clientMouse);
     // Debug
     this.debugOverlay.update(dt, this.clientMouse);
     // Tooltip
