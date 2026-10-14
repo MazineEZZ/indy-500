@@ -10,8 +10,9 @@ class State {
 }
 
 class StateManager {
-  constructor(states) {
+  constructor(states, events) {
     this.states = states;
+    this.events = events;
     this.stack = [];
   }
   push(state) {
@@ -26,7 +27,7 @@ class StateManager {
   clear() {
     this.stack.length = 0;
   }
-  handleEvent(event, game) {
+  handleEvent(event) {
     if (this.peek() === undefined) {
       throw new Error("currentState must be specified!");
     }
@@ -37,19 +38,19 @@ class StateManager {
         switch (trans.action) {
           case "push":
             this.push(state);
-            this.peek().onEnter(game);
+            this.peek().onEnter(this.events);
             break;
           case "pop":
-            this.peek().onExit(game);
+            this.peek().onExit(this.events);
             this.pop();
             break;
           case "clear":
             for (let i = this.stack.length - 1; i >= 0; i--) {
-              this.stack[i].onExit(game);
+              this.stack[i].onExit(this.events);
             }
             this.clear();
             this.push(state);
-            this.peek().onEnter(game);
+            this.peek().onEnter(this.events);
             break;
         }
         return "Transition Successful";

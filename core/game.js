@@ -1,24 +1,18 @@
 import { gameSettings, inputBindings } from "../data/settings.js";
-import { Player } from "../entities/player.js";
 import { EntityRegistry } from "../systems/entities.js";
 import { CollisionSystem } from "../systems/collisions.js";
 import { Inputs } from "../systems/inputs.js";
 import { EventBus } from "../systems/events.js";
 import { AudioSystem } from "../systems/audio.js";
-import {
-  UILayer,
-  Label,
-  ResourceBar,
-  Checkbox,
-  Slider,
-  Button,
-} from "../ui/ui.js";
 import { TooltipManager, Tooltip } from "../ui/tooltip.js";
 import { DebugOverlay } from "../systems/debug.js";
 import { AssetManager } from "../systems/assets.js";
 import { pausedState, playState, menuState } from "../states/gameState.js";
 import { StateManager } from "../systems/states.js";
 import { ClientMouse } from "../systems/clientMouse.js";
+import { setUpPlayState } from "../states/playState.js";
+import { setUpMenuState } from "../states/menuState.js";
+import { setUpPauseState } from "../states/pauseState.js";
 
 class Game {
   constructor(canvas) {
@@ -42,11 +36,14 @@ class Game {
     );
 
     // Game State
-    this.gameState = new StateManager({
-      paused: pausedState,
-      menu: menuState,
-      play: playState,
-    });
+    this.gameState = new StateManager(
+      {
+        paused: pausedState,
+        menu: menuState,
+        play: playState,
+      },
+      this.events,
+    );
 
     // Initial Setup
     this.canvas.width = gameSettings.width;
@@ -89,145 +86,7 @@ class Game {
     this.canvas.style.height = h + "px";
     this.canvas.style.margin = margin + "px";
   }
-  loadPlayState() {
-    this.player = new Player(
-      "player",
-      20,
-      20,
-      40,
-      100,
-      40,
-      100,
-      4,
-      300,
-      this.collisions,
-      this.inputs,
-      this.events,
-      "yellow",
-    );
-    this.collisions.register(this.player);
-    this.entities.register(this.player);
-  }
-  loadMenuUI() {
-    this.menuUI = new UILayer();
-    this.gameState.states.menu.ui = this.menuUI;
-
-    const title = new Label(gameSettings.width / 2, 200, {
-      text: "Menu!",
-      align: "center",
-      baseline: "middle",
-    });
-    const checkbox = new Checkbox(500, 300, 50, 50, 4);
-    const slider = new Slider(500, 400, 200, 30, 4);
-    const startGameBtn = new Button(
-      gameSettings.width / 2,
-      500,
-      100,
-      30,
-      4,
-      this.events,
-      "gameStarted",
-      {
-        btnBorderSize: "4px",
-        btnBorderColor: "black",
-      },
-      {
-        text: "Play Game",
-      },
-    );
-
-    this.menuUI.register(title);
-    this.menuUI.register(checkbox);
-    this.menuUI.register(slider);
-    this.menuUI.register(startGameBtn);
-
-    this.events.on("gameStarted", (event) => {
-      this.gameState.handleEvent(event, this);
-      this.events.emit("stateChanged");
-    });
-  }
-  loadPauseUI() {
-    this.pauseUI = new UILayer();
-    this.gameState.states.paused.ui = this.pauseUI;
-
-    const pauseText = new Label(
-      gameSettings.width / 2,
-      gameSettings.height / 2,
-      {
-        text: "Game Paused",
-        align: "center",
-        baseline: "middle",
-      },
-    );
-
-    const menuBtnWidth = 200;
-    const menuBtn = new Button(
-      gameSettings.width / 2 + menuBtnWidth / 2,
-      gameSettings.height / 2 + 100,
-      menuBtnWidth,
-      40,
-      4,
-      this.events,
-      "gameMenu",
-      {
-        btnBorderColor: "black",
-        btnBorderSize: "4px",
-      },
-      {
-        text: "Quit to Menu",
-      },
-    );
-
-    this.pauseUI.register(pauseText);
-    this.pauseUI.register(menuBtn);
-
-    this.events.on("gameMenu", (event) => {
-      this.gameState.handleEvent(event, this);
-      this.gameState.clear();
-      this.gameState.push(menuState);
-      this.events.emit("stateChanged");
-    });
-    this.events.on("togglePause", () => {
-      this.gameState.handleEvent("togglePause", this);
-      this.events.emit("stateChanged");
-    });
-  }
-  loadPlayUI() {
-    this.playUI = new UILayer();
-    this.gameState.states.play.ui = this.playUI;
-
-    const playerHealthBar = new ResourceBar(
-      20,
-      gameSettings.height - 30 - 20,
-      200,
-      30,
-      3,
-    );
-
-    this.tooltips.register(
-      playerHealthBar,
-      "This is a player's healthbar",
-      this.gameState.states.play,
-    );
-
-    this.playUI.register(playerHealthBar);
-
-    this.events.on("playerHealthChanged", ({ current, max }) =>
-      playerHealthBar.setValue(current, max),
-    );
-  }
-  async init() {
-    // Load assets
-    await Promise.all([]);
-
-    // Game Systems
-    this.loadPlayState();
-
-    // User Interface
-    this.loadPlayUI();
-    this.loadPauseUI();
-    this.loadMenuUI();
-
+  setUpSignals() {
     // Game Events
     this.events.on("stateChanged", () => {
       this.clientMouse.updateElements(
@@ -239,6 +98,26 @@ class Game {
     // State Management
     this.gameState.push(menuState);
     this.events.emit("stateChanged");
+  }
+  async init() {
+    // Load assets
+    await Promise.all([]);
+
+    // Game States
+    this.playUI = setUpPlayState(
+      this.gameState,
+      this.entities,
+      this.collisions,
+      this.inputs,
+      this.tooltips,
+      this.events,
+    );
+    this.pauseUI = setUpPauseState(this.gameState, this.events);
+    this.menuUI = setUpMenuState(this.gameState, this.events);
+
+    this.setUpSignals();
+
+    console.log(this.gameState);
   }
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);

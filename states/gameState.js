@@ -15,8 +15,8 @@ const pausedState = new State(
     },
   ],
   {
-    onEnter: (game) => {
-      game.events.emit("gamePaused");
+    onEnter: (events) => {
+      events.emit("gamePaused");
     },
     update: (dt, game) => {
       game.pauseUI.update(dt, game.clientMouse);
@@ -52,7 +52,7 @@ const playState = new State(
     },
   ],
   {
-    onEnter: (game) => game.events.emit("gameUnpaused"),
+    onEnter: (events) => events.emit("gameUnpaused"),
     update: (dt, game) => {
       // Entities
       game.entities.update(dt);
