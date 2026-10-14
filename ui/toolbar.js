@@ -1,4 +1,4 @@
-import { UIElement, Button, Label, Panel, isMouseOverlapping } from "./ui.js";
+import { UIElement, Button, Label, Panel } from "./ui.js";
 
 class Card extends Panel {
   constructor(x, y, width, height, zIndex, type, events, text, color) {
@@ -20,8 +20,8 @@ class Card extends Panel {
     this.label.position.y = this.position.y + this.height / 2;
     this.label.draw(ctx);
   }
-  update(dt, mouse) {
-    if (isMouseOverlapping(this, mouse.lastClickPos)) {
+  update(dt, clientMouse) {
+    if (clientMouse.isClicked(this)) {
       this.events.emit("towerPicked", this.type);
     }
   }

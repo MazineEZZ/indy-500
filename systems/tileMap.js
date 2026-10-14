@@ -38,9 +38,9 @@ class TileMap {
       row: Math.floor(point.y / this.tileWidth),
     };
   }
-  getSelectedCoords(mouse) {
-    const x = Math.floor(mouse.x / this.cellSize) * this.cellSize;
-    const y = Math.floor(mouse.y / this.cellSize) * this.cellSize;
+  getSelectedCoords(pos) {
+    const x = Math.floor(pos.x / this.cellSize) * this.cellSize;
+    const y = Math.floor(pos.y / this.cellSize) * this.cellSize;
     return { x, y };
   }
   getTileData(json) {

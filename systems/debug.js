@@ -1,5 +1,5 @@
 import { gameSettings } from "../data/settings.js";
-import { Label, isMouseOverlapping } from "../ui/ui.js";
+import { Label } from "../ui/ui.js";
 import { roundTo } from "../utilities/utils.js";
 
 class DebugOverlay {
@@ -37,7 +37,7 @@ class DebugOverlay {
   set setState(isOn) {
     this.isOn = isOn;
   }
-  update(dt, mouse) {
+  update(dt, clientMouse) {
     if (this.inputs.isDownOnce("debug_game")) {
       this.setState = !this.isOn;
     }
@@ -48,7 +48,7 @@ class DebugOverlay {
 
     // Check if an entity is clicked then track it's position
     for (const ent of this.entities.elements) {
-      if (isMouseOverlapping(ent, mouse.lastClickPos)) {
+      if (clientMouse.isClicked(ent)) {
         this.isTracking = this.trackedEntity === ent ? !this.isTracking : true;
         this.trackedEntity = ent;
       }

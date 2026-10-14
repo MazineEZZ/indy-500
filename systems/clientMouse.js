@@ -1,4 +1,4 @@
-import { isMouseOverlapping } from "../ui/ui.js";
+import { calcDistance2Points } from "../utilities/utils.js";
 
 class ClientMouse {
   constructor(canvas) {
@@ -34,6 +34,14 @@ class ClientMouse {
   resetClick() {
     this.mouse.lastClickPos = this._default;
   }
+  isHovered(element) {
+    for (let i = this.elements.length - 1; i >= 0; i--) {
+      if (isMouseOverlapping(this.elements[i], this.mouse.currPos)) {
+        return this.elements[i] === element;
+      }
+    }
+    return false;
+  }
   isClicked(element) {
     for (let i = this.elements.length - 1; i >= 0; i--) {
       if (isMouseOverlapping(this.elements[i], this.mouse.lastClickPos)) {
@@ -44,9 +52,22 @@ class ClientMouse {
   }
   updateElements(uis, entities) {
     this.elements.length = 0;
-    this.elements.push(...uis);
     this.elements.push(...entities);
+    this.elements.push(...uis);
   }
 }
 
-export { ClientMouse };
+function isMouseOverlapping(element, mousepos, isCircle = false) {
+  if (isCircle) {
+    const distance = calcDistance2Points(element.position, mousepos);
+    return distance < element.radius;
+  }
+  return (
+    element.position.x < mousepos.x &&
+    mousepos.x < element.position.x + element.width &&
+    element.position.y < mousepos.y &&
+    mousepos.y < element.position.y + element.height
+  );
+}
+
+export { ClientMouse, isMouseOverlapping };

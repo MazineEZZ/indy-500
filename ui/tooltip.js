@@ -1,4 +1,4 @@
-import { TextBox, isMouseOverlapping } from "./ui.js";
+import { TextBox } from "./ui.js";
 
 class Tooltip extends TextBox {
   constructor(
@@ -39,10 +39,7 @@ class TooltipManager {
   }
   update(dt, clientMouse, state) {
     for (const te of this.trackedEntities) {
-      if (
-        isMouseOverlapping(te.entity, clientMouse.mouse.currPos) &&
-        te.state === state
-      ) {
+      if (clientMouse.isHovered(te.entity) && te.state === state) {
         const offset = 10;
         this.tooltip.position.x =
           te.entity.position.x + te.entity.width + offset;

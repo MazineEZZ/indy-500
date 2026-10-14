@@ -2,7 +2,6 @@ import { separate } from "../systems/collisions.js";
 import { gameSettings } from "../data/settings.js";
 import { Rect } from "../core/rect.js";
 import { Vector2 } from "../core/vector.js";
-import { isMouseOverlapping } from "../ui/ui.js";
 
 class Player extends Rect {
   constructor(

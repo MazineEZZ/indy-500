@@ -1,11 +1,7 @@
 import { RegistrySystem } from "../systems/registry.js";
-import {
-  calcDistance2Points,
-  clamp,
-  colorToRGB,
-  isLetter,
-} from "../utilities/utils.js";
+import { clamp, colorToRGB, isLetter } from "../utilities/utils.js";
 import { gameSettings } from "../data/settings.js";
+import { isMouseOverlapping } from "../systems/clientMouse.js";
 
 class UIElement {
   constructor(x, y, width, height, zIndex) {
@@ -159,7 +155,7 @@ class Button extends UIElement {
   }
   update(dt, clientMouse) {
     if (!this.visible) return;
-    if (isMouseOverlapping(this, clientMouse.mouse.currPos)) {
+    if (clientMouse.isHovered(this)) {
       this.color = this.hoverClr;
     } else {
       this.color = this.unhoverClr;
@@ -201,7 +197,7 @@ class Checkbox extends UIElement {
     this.inCheck = false;
   }
   update(dt, clientMouse) {
-    if (isMouseOverlapping(this, clientMouse.mouse.lastClickPos)) {
+    if (clientMouse.isClicked(this)) {
       this.inCheck = !this.inCheck;
     }
   }
@@ -328,7 +324,6 @@ class Slider extends UIElement {
       this.diff = this.knob.position.x - clientMouse.mouse.lastClickPos.x;
       this.isKnobClicked = true;
     }
-
     this.knob.position.x = this.keepInBounds(
       this.position.x,
       this.width,
@@ -503,19 +498,6 @@ class UILayer extends RegistrySystem {
 }
 
 // UI Helpful Functions
-function isMouseOverlapping(element, mousepos, isCircle = false) {
-  if (isCircle) {
-    const distance = calcDistance2Points(element.position, mousepos);
-    return distance < element.radius;
-  }
-  return (
-    element.position.x < mousepos.x &&
-    mousepos.x < element.position.x + element.width &&
-    element.position.y < mousepos.y &&
-    mousepos.y < element.position.y + element.height
-  );
-}
-
 function lerpColor(color1, color2, progress, t1, t2) {
   return {
     r: remap(progress, t1, t2, color1.r, color2.r),
@@ -551,5 +533,4 @@ export {
   ResourceBar,
   Checkbox,
   Slider,
-  isMouseOverlapping,
 };
