@@ -58,7 +58,7 @@ class Game {
   }
   setUpEventListeners() {
     window.addEventListener("keydown", (e) => {
-      if (!this.inputs.isDown("pause_game")) return;
+      if (!this.inputs.isDownOnce("pause_game")) return;
       this.events.emit("togglePause");
     });
     window.addEventListener("resize", () => {
@@ -96,7 +96,7 @@ class Game {
     });
 
     // State Management
-    this.gameState.push(menuState);
+    this.gameState.push(playState);
     this.events.emit("stateChanged");
   }
   async init() {
@@ -116,8 +116,6 @@ class Game {
     this.menuUI = setUpMenuState(this.gameState, this.events);
 
     this.setUpSignals();
-
-    console.log(this.gameState);
   }
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -153,8 +151,8 @@ class Game {
     };
     this.animationFrameId = requestAnimationFrame(loop);
   }
-  start() {
-    this.init();
+  async start() {
+    await this.init();
     this.gameLoop();
   }
   stop() {

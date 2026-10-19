@@ -1,13 +1,13 @@
 import { Vector2 } from "../core/vector.js";
 
 class Rect {
-  constructor(type, x, y, width, height, zIndex, color = "white") {
+  constructor(type, x, y, width, height, color = "white") {
     this.position = new Vector2(x, y);
     this.width = width;
     this.height = height;
-    this.zIndex = zIndex;
     this.color = color;
     this.type = type;
+    this.zIndex = 1;
   }
   draw(ctx) {
     ctx.fillStyle = this.color;

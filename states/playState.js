@@ -8,6 +8,7 @@ import {
 } from "../ui/ui.js";
 import { Player } from "../entities/player.js";
 import { gameSettings } from "../data/settings.js";
+import { Car } from "../entities/car.js";
 
 function setUpPlayState(
   gameState,
@@ -18,25 +19,11 @@ function setUpPlayState(
   events,
 ) {
   // Entities
-  const player = new Player(
-    "player",
-    20,
-    20,
-    40,
-    100,
-    40,
-    100,
-    4,
-    300,
-    collisions,
-    inputs,
-    events,
-    "yellow",
-  );
+  const car = new Car("car", 20, 20, 120, 50, collisions, inputs, events);
 
   // Registration
-  collisions.register(player);
-  entities.register(player);
+  collisions.register(car);
+  entities.register(car);
 
   // UI
   return loadPlayUI(gameState, tooltips, events);
