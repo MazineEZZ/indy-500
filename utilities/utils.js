@@ -23,7 +23,6 @@ function isLetter(char) {
   return /^\p{L}$/u.test(char);
 }
 
-
 function colorToRGB(color) {
   const tempEl = document.createElement("div");
   tempEl.style.color = color;
@@ -43,4 +42,12 @@ function colorToRGB(color) {
   return { r, g, b };
 }
 
-export { roundTo, clamp, colorToRGB, calcDistance2Points, isLetter };
+export {
+  roundTo,
+  clamp,
+  colorToRGB,
+  calcDistance2Points,
+  isLetter,
+  toRad,
+  toDegrees,
+};
