@@ -26,7 +26,8 @@ class Car extends Rect {
     this.f_drive = new Vector2();
     this.f_rr = new Vector2();
     this.f_total = new Vector2();
-    this.f_lateral = new Vector2();
+    this.f_lateral_f = 0;
+    this.f_lateral_r = 0;
     this.heading = 0;
     this.deltaWheel = 0;
     this.angular = 0;
@@ -38,6 +39,8 @@ class Car extends Rect {
 
     // For now it's going to be preset but later I should make it realistic
     this.C_DRAG = 0.5 * 0.3 * 2.2 * 1.29;
+    this.C_ALPHA_F = 72500;
+    this.C_ALPHA_R = 72500;
     this.BREAKING_DECEL = 8;
     this.T_ENGINE = 508 * 4;
     this.FIRST_GEAR = 2.66;
@@ -133,9 +136,24 @@ class Car extends Rect {
     this.f_rr.x = -this.C_RR * this.velocity.x;
     this.f_rr.y = -this.C_RR * this.velocity.y;
 
+    // Lateral Forces
+    this.calcSlip();
+    this.f_lateral_f = -this.C_ALPHA_F * this.front_slip * 2;
+    this.f_lateral_r = -this.C_ALPHA_R * this.rear_slip * 2;
+
     // Longitudinal Forces
-    this.f_total.x = this.f_drive.x + this.f_drag.x + this.f_rr.x;
-    this.f_total.y = this.f_drive.y + this.f_drag.y + this.f_rr.y;
+    this.f_total.x =
+      this.f_drive.x +
+      this.f_drag.x +
+      this.f_rr.x +
+      this.f_lateral_f * -Math.sin(this.heading + this.deltaWheel) +
+      this.f_lateral_r * -Math.sin(this.heading);
+    this.f_total.y =
+      this.f_drive.y +
+      this.f_drag.y +
+      this.f_rr.y +
+      this.f_lateral_f * Math.cos(this.heading + this.deltaWheel) +
+      this.f_lateral_r * Math.cos(this.heading);
 
     // Acceleration
     this.acceleration.x = this.f_total.x / this.MASS;
@@ -153,7 +171,6 @@ class Car extends Rect {
     this.updateAngularVel();
 
     this.heading += this.angular * dt;
-    this.updateVelocity();
 
     // Acceleration
     this.updateAccel();
