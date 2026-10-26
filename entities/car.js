@@ -28,9 +28,11 @@ class Car extends Rect {
     this.f_total = new Vector2();
     this.heading = 0;
     this.deltaWheel = 0;
+    this.angular = 0;
 
-    // Corvette C5 properties
+    //? Corvette C5 properties
     this.MASS = 1472;
+    this.WHEELBASE = 2.5;
 
     // For now it's going to be preset but later I should make it realistic
     this.C_DRAG = 0.5 * 0.3 * 2.2 * 1.29;
@@ -61,10 +63,10 @@ class Car extends Rect {
   }
   checkSteeringInput(dt) {
     if (this.input.isDown("turn_right")) {
-      this.deltaWheel += 0.2 * dt;
+      this.deltaWheel += 0.1 * dt;
     }
     if (this.input.isDown("turn_left")) {
-      this.deltaWheel -= 0.2 * dt;
+      this.deltaWheel -= 0.1 * dt;
     }
 
     this.deltaWheel = clamp(
@@ -72,6 +74,13 @@ class Car extends Rect {
       this.deltaWheel,
       this.MAX_WHEEL_ROTATION,
     );
+  }
+  updateAngularVel() {
+    this.angular = (this.speed * Math.sin(this.deltaWheel)) / this.WHEELBASE;
+  }
+  updateVelocity() {
+    this.velocity.x = this.speed * Math.cos(this.heading);
+    this.velocity.y = this.speed * Math.sin(this.heading);
   }
   updateAccel() {
     // Drag force
@@ -109,10 +118,17 @@ class Car extends Rect {
     this.checkDriveInput();
     this.checkSteeringInput(dt);
 
-    console.log(this.deltaWheel);
+    // Update speed
+    this.speed =
+      this.velocity.x * Math.cos(this.heading) +
+      this.velocity.y * Math.sin(this.heading);
+
+    this.updateAngularVel();
+
+    this.heading += this.angular * dt;
+    this.updateVelocity();
 
     // Acceleration
-    this.heading = 0;
     this.updateAccel();
 
     // Update velocity and then position
