@@ -1,5 +1,5 @@
 import { Rect } from "../core/rect.js";
-import { Vector2 } from "../core/vector.js";
+import { Vector2, dotProduct } from "../core/vector.js";
 import { clamp, toRad } from "../utilities/utils.js";
 
 class Car extends Rect {
@@ -26,9 +26,11 @@ class Car extends Rect {
     this.f_drive = new Vector2();
     this.f_rr = new Vector2();
     this.f_total = new Vector2();
+    this.f_lateral = new Vector2();
     this.heading = 0;
     this.deltaWheel = 0;
     this.angular = 0;
+    this.vel_lateral = 0;
 
     //? Corvette C5 properties
     this.MASS = 1472;
@@ -76,11 +78,36 @@ class Car extends Rect {
     );
   }
   updateAngularVel() {
-    this.angular = (this.speed * Math.sin(this.deltaWheel)) / this.WHEELBASE;
+    this.angular =
+      (this.vel_forward * Math.sin(this.deltaWheel)) / this.WHEELBASE;
   }
   updateVelocity() {
-    this.velocity.x = this.speed * Math.cos(this.heading);
-    this.velocity.y = this.speed * Math.sin(this.heading);
+    // New vel = old vel * r (chapeau)
+    this.velocity.x = this.vel_forward * Math.cos(this.heading);
+    this.velocity.y = this.vel_forward * Math.sin(this.heading);
+  }
+  calcSlip() {
+    this.vel_lateral = dotProduct(this.velocity, {
+      x: -Math.sin(this.heading),
+      y: Math.cos(this.heading),
+    });
+
+    // Speed is the Forward Velocity
+    // this.sideSlip = Math.atan2(this.vel_lateral, this.speed);
+
+    const b = this.WHEELBASE / 2;
+    const c = this.WHEELBASE / 2;
+    this.front_slip =
+      Math.atan2(
+        this.vel_lateral + this.angular * b,
+        Math.abs(this.vel_forward),
+      ) -
+      this.deltaWheel * Math.sign(this.vel_forward);
+
+    this.rear_slip = Math.atan2(
+      this.vel_lateral - this.angular * c,
+      Math.abs(this.vel_forward),
+    );
   }
   updateAccel() {
     // Drag force
@@ -119,7 +146,7 @@ class Car extends Rect {
     this.checkSteeringInput(dt);
 
     // Update speed
-    this.speed =
+    this.vel_forward =
       this.velocity.x * Math.cos(this.heading) +
       this.velocity.y * Math.sin(this.heading);
 
