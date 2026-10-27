@@ -28,6 +28,7 @@ class Car extends Rect {
     this.f_total = new Vector2();
     this.f_lateral_f = 0;
     this.f_lateral_r = 0;
+    this.vel_forward = 0;
     this.heading = 0;
     this.deltaWheel = 0;
     this.angular = 0;
@@ -36,6 +37,8 @@ class Car extends Rect {
     //? Corvette C5 properties
     this.MASS = 1472;
     this.WHEELBASE = 2.5;
+    this.LENGTH = 4.566;
+    this.WIDTH = 1.869;
 
     // For now it's going to be preset but later I should make it realistic
     this.C_DRAG = 0.5 * 0.3 * 2.2 * 1.29;
@@ -80,14 +83,17 @@ class Car extends Rect {
       this.MAX_WHEEL_ROTATION,
     );
   }
-  updateAngularVel() {
-    this.angular =
-      (this.vel_forward * Math.sin(this.deltaWheel)) / this.WHEELBASE;
-  }
-  updateVelocity() {
-    // New vel = old vel * r (chapeau)
-    this.velocity.x = this.vel_forward * Math.cos(this.heading);
-    this.velocity.y = this.vel_forward * Math.sin(this.heading);
+  updateRotationKin(dt) {
+    const b = this.WHEELBASE / 2;
+    const c = this.WHEELBASE / 2;
+    const inertia = (1 / 12) * this.MASS * (this.WIDTH ** 2 + this.LENGTH ** 2);
+    const torque =
+      b * this.f_lateral_f * Math.cos(this.deltaWheel) - c * this.f_lateral_r;
+
+    const alpha = torque / inertia;
+
+    this.angular += alpha * dt;
+    this.heading += this.angular * dt;
   }
   calcSlip() {
     this.vel_lateral = dotProduct(this.velocity, {
@@ -168,12 +174,11 @@ class Car extends Rect {
       this.velocity.x * Math.cos(this.heading) +
       this.velocity.y * Math.sin(this.heading);
 
-    this.updateAngularVel();
-
-    this.heading += this.angular * dt;
-
     // Acceleration
     this.updateAccel();
+
+    // Update Angular Velocity & Heading
+    this.updateRotationKin(dt);
 
     // Update velocity and then position
     this.velocity.x += dt * this.acceleration.x;
