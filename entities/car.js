@@ -1,6 +1,6 @@
 import { Rect } from "../core/rect.js";
 import { Vector2, dotProduct } from "../core/vector.js";
-import { clamp, toRad } from "../utilities/utils.js";
+import { clamp, lerp, toRad } from "../utilities/utils.js";
 
 class Car extends Rect {
   constructor(
@@ -40,7 +40,6 @@ class Car extends Rect {
     this.LENGTH = 4.566;
     this.WIDTH = 1.869;
 
-    // For now it's going to be preset but later I should make it realistic
     this.C_DRAG = 0.5 * 0.3 * 2.2 * 1.29;
     this.C_ALPHA_F = 72500;
     this.C_ALPHA_R = 72500;
@@ -51,6 +50,7 @@ class Car extends Rect {
     this.WHEEL_RADIUS = 0.33;
     this.TRANS_EFFIC = 0.75;
     this.MAX_WHEEL_ROTATION = toRad(24); // 24 degrees
+    this.LOW_SPEED_THRESHOLD = 2; // m/s
   }
   applyTransform(ctx) {
     ctx.translate(
@@ -144,8 +144,14 @@ class Car extends Rect {
 
     // Lateral Forces
     this.calcSlip();
+
+    // Blending Factor
+    const t = clamp(0, this.velocity.length() / this.LOW_SPEED_THRESHOLD, 1);
     this.f_lateral_f = -this.C_ALPHA_F * this.front_slip * 2;
     this.f_lateral_r = -this.C_ALPHA_R * this.rear_slip * 2;
+    // Low speed limiter
+    this.f_lateral_f = lerp(0, this.f_lateral_f, t);
+    this.f_lateral_r = lerp(0, this.f_lateral_r, t);
 
     // Longitudinal Forces
     this.f_total.x =

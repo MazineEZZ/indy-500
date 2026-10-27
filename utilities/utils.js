@@ -42,6 +42,22 @@ function colorToRGB(color) {
   return { r, g, b };
 }
 
+function lerp(a, b, t) {
+  // a: the value of the object
+  // b: the value to follow
+  // t: the time it takes to reach b
+  return a + t * (b - a);
+}
+
+function inverseLerp(a, b, val) {
+  return (val - a) / (b - a);
+}
+
+function remap(t, t1, t2, a, b) {
+  // I remade this function using slopes for easier time manipulation
+  return a + ((b - a) * (t - t1)) / (t2 - t1);
+}
+
 export {
   roundTo,
   clamp,
@@ -50,4 +66,7 @@ export {
   isLetter,
   toRad,
   toDegrees,
+  lerp,
+  inverseLerp,
+  remap,
 };

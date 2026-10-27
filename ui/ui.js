@@ -1,5 +1,12 @@
 import { RegistrySystem } from "../systems/registry.js";
-import { clamp, colorToRGB, isLetter } from "../utilities/utils.js";
+import {
+  clamp,
+  colorToRGB,
+  isLetter,
+  lerp,
+  inverseLerp,
+  remap,
+} from "../utilities/utils.js";
 import { gameSettings } from "../data/settings.js";
 import { isMouseOverlapping } from "../systems/clientMouse.js";
 
@@ -504,22 +511,6 @@ function lerpColor(color1, color2, progress, t1, t2) {
     g: remap(progress, t1, t2, color1.g, color2.g),
     b: remap(progress, t1, t2, color1.b, color2.b),
   };
-}
-
-function lerp(a, b, t) {
-  // a: the value of the object
-  // b: the value to follow
-  // t: the time it takes to reach b
-  return a + t * (b - a);
-}
-
-function inverseLerp(a, b, val) {
-  return (val - a) / (b - a);
-}
-
-function remap(t, t1, t2, a, b) {
-  // I remade this function using slopes for easier time manipulation
-  return a + ((b - a) * (t - t1)) / (t2 - t1);
 }
 
 export {
