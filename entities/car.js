@@ -40,11 +40,15 @@ class Car extends Rect {
     this.LENGTH = 4.566;
     this.WIDTH = 1.869;
 
+    // Terrain Constants
+    this.ASPHALT_FRICTION = 1; // mu
+
+    this.GRAVITY = 9.81; // m/s^2
     this.C_DRAG = 0.5 * 0.3 * 2.2 * 1.29;
     this.C_ALPHA_F = 72500;
     this.C_ALPHA_R = 72500;
     this.BREAKING_DECEL = 8;
-    this.T_ENGINE = 508 * 4;
+    this.T_ENGINE = 508 * 2;
     this.FIRST_GEAR = 2.66;
     this.DIFF_RATIO = 3.42;
     this.WHEEL_RADIUS = 0.33;
@@ -70,11 +74,23 @@ class Car extends Rect {
     }
   }
   checkSteeringInput(dt) {
+    let isTurning = false;
+    const turnRate = 0.2;
+    const returnRate = turnRate * 2;
+
     if (this.input.isDown("turn_right")) {
-      this.deltaWheel += 0.1 * dt;
+      this.deltaWheel += turnRate * dt;
+      isTurning = true;
     }
     if (this.input.isDown("turn_left")) {
-      this.deltaWheel -= 0.1 * dt;
+      this.deltaWheel -= turnRate * dt;
+      isTurning = true;
+    }
+    if (!isTurning) {
+      if (this.deltaWheel > 0)
+        this.deltaWheel = Math.max(0, this.deltaWheel - returnRate * dt);
+      if (this.deltaWheel < 0)
+        this.deltaWheel = Math.min(0, this.deltaWheel + returnRate * dt);
     }
 
     this.deltaWheel = clamp(
@@ -82,6 +98,7 @@ class Car extends Rect {
       this.deltaWheel,
       this.MAX_WHEEL_ROTATION,
     );
+    isTurning = false;
   }
   updateRotationKin(dt) {
     const b = this.WHEELBASE / 2;
@@ -145,6 +162,9 @@ class Car extends Rect {
     // Lateral Forces
     this.calcSlip();
 
+    this.f_lateral_max =
+      (this.ASPHALT_FRICTION * (this.MASS * this.GRAVITY)) / 2;
+
     // Blending Factor
     const t = clamp(0, this.velocity.length() / this.LOW_SPEED_THRESHOLD, 1);
     this.f_lateral_f = -this.C_ALPHA_F * this.front_slip * 2;
@@ -152,6 +172,17 @@ class Car extends Rect {
     // Low speed limiter
     this.f_lateral_f = lerp(0, this.f_lateral_f, t);
     this.f_lateral_r = lerp(0, this.f_lateral_r, t);
+    // Tire force saturation
+    // this.f_lateral_f = clamp(
+    //   -this.f_lateral_max,
+    //   this.f_lateral_f,
+    //   this.f_lateral_max,
+    // );
+    // this.f_lateral_r = clamp(
+    //   -this.f_lateral_max,
+    //   this.f_lateral_r,
+    //   this.f_lateral_max,
+    // );
 
     // Longitudinal Forces
     this.f_total.x =
@@ -166,6 +197,11 @@ class Car extends Rect {
       this.f_rr.y +
       this.f_lateral_f * Math.cos(this.heading + this.deltaWheel) +
       this.f_lateral_r * Math.cos(this.heading);
+
+    // if (this.forward < 0) {
+    //   this.f_total.x -= this.f_braking * Math.sin();
+    //   this.f_total.y -= this.f_braking;
+    // }
 
     // Acceleration
     this.acceleration.x = this.f_total.x / this.MASS;
