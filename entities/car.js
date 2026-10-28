@@ -78,6 +78,8 @@ class Car extends Rect {
     this.LENGTH = 4.566;
     this.WIDTH = 1.869;
 
+    this.PX_PER_M = this.width / this.LENGTH;
+
     // Terrain Constants
     this.ASPHALT_FRICTION = 1; // mu
 
@@ -86,11 +88,12 @@ class Car extends Rect {
     this.C_ALPHA_F = 72500;
     this.C_ALPHA_R = 72500;
     this.BREAKING_DECEL = 8;
-    this.T_ENGINE = 508 * 2;
+    this.T_ENGINE = 508;
     this.FIRST_GEAR = 2.66;
     this.DIFF_RATIO = 3.42;
     this.WHEEL_RADIUS = 0.33;
     this.TRANS_EFFIC = 0.75;
+    this.ENGINE_POWER = 250000;
     this.MAX_WHEEL_ROTATION = toRad(24); // 24 degrees
     this.LOW_SPEED_THRESHOLD = 2; // m/s
   }
@@ -113,7 +116,7 @@ class Car extends Rect {
   }
   checkSteeringInput(dt) {
     let isTurning = false;
-    const turnRate = 0.1;
+    const turnRate = 1.5;
     const returnRate = turnRate * 2;
 
     if (this.input.isDown("turn_right")) {
@@ -131,12 +134,22 @@ class Car extends Rect {
         this.deltaWheel = Math.min(0, this.deltaWheel + returnRate * dt);
     }
 
-    this.deltaWheel = clamp(
-      -this.MAX_WHEEL_ROTATION,
-      this.deltaWheel,
+    const speed = Math.max(this.velocity.length(), 1);
+    const maxGrip = (this.ASPHALT_FRICTION * (this.MASS * this.GRAVITY)) / 2;
+
+    // Wheel angle that follows the tightest circle the tires can hold at this speed
+    const gripAngle = Math.atan(
+      (this.WHEELBASE * this.ASPHALT_FRICTION * this.GRAVITY) / speed ** 2,
+    );
+    // Extra angle the tire needs just to start producing its peak force
+    const peakSlip = maxGrip / (2 * this.C_ALPHA_F);
+
+    const maxSteer = clamp(
+      toRad(2),
+      gripAngle + peakSlip,
       this.MAX_WHEEL_ROTATION,
     );
-    isTurning = false;
+    this.deltaWheel = clamp(-maxSteer, this.deltaWheel, maxSteer);
   }
   updateRotationKin(dt) {
     const b = this.WHEELBASE / 2;
@@ -182,13 +195,15 @@ class Car extends Rect {
     this.f_braking = this.MASS * this.BREAKING_DECEL;
 
     // Drive Force
-    const F_DRIVE =
-      (this.forward *
-        this.T_ENGINE *
-        this.FIRST_GEAR *
-        this.DIFF_RATIO *
-        this.TRANS_EFFIC) /
+    const N_axle = (this.MASS * this.GRAVITY) / 2;
+    const maxGrip = this.ASPHALT_FRICTION * N_axle;
+
+    let F_RAW =
+      (this.T_ENGINE * this.FIRST_GEAR * this.DIFF_RATIO * this.TRANS_EFFIC) /
       this.WHEEL_RADIUS;
+    const powerLimit =
+      this.ENGINE_POWER / Math.max(Math.abs(this.vel_forward), 5);
+    const F_DRIVE = this.forward * Math.min(F_RAW, powerLimit, 0.7 * maxGrip);
     this.f_drive.x = F_DRIVE * Math.cos(this.heading);
     this.f_drive.y = F_DRIVE * Math.sin(this.heading);
 
@@ -200,27 +215,25 @@ class Car extends Rect {
     // Lateral Forces
     this.calcSlip();
 
-    this.f_lateral_max =
-      (this.ASPHALT_FRICTION * (this.MASS * this.GRAVITY)) / 2;
+    const maxLatF = maxGrip;
+    const maxLatR = Math.sqrt(Math.max(0, maxGrip ** 2 - F_DRIVE ** 2));
 
     // Blending Factor
     const t = clamp(0, this.velocity.length() / this.LOW_SPEED_THRESHOLD, 1);
     this.f_lateral_f = -this.C_ALPHA_F * this.front_slip * 2;
     this.f_lateral_r = -this.C_ALPHA_R * this.rear_slip * 2;
     // Low speed limiter
-    this.f_lateral_f = lerp(0, this.f_lateral_f, t);
-    this.f_lateral_r = lerp(0, this.f_lateral_r, t);
+    this.f_lateral_f =
+      -maxLatF *
+      Math.tanh((this.C_ALPHA_F * 2 * this.front_slip) / maxLatF) *
+      t;
+    this.f_lateral_r =
+      -maxLatR *
+      Math.tanh((this.C_ALPHA_R * 2 * this.rear_slip) / Math.max(maxLatR, 1)) *
+      t;
     // Tire force saturation
-    // this.f_lateral_f = clamp(
-    //   -this.f_lateral_max,
-    //   this.f_lateral_f,
-    //   this.f_lateral_max,
-    // );
-    // this.f_lateral_r = clamp(
-    //   -this.f_lateral_max,
-    //   this.f_lateral_r,
-    //   this.f_lateral_max,
-    // );
+    this.f_lateral_f = clamp(-maxLatF, this.f_lateral_f, maxLatF);
+    this.f_lateral_r = clamp(-maxLatR, this.f_lateral_r, maxLatR);
 
     // Longitudinal Forces
     this.f_total.x =
@@ -263,19 +276,16 @@ class Car extends Rect {
     // Update velocity and then position
     this.velocity.x += dt * this.acceleration.x;
     this.velocity.y += dt * this.acceleration.y;
-    this.position.x += dt * this.velocity.x;
-    this.position.y += dt * this.velocity.y;
+    this.position.x += dt * this.velocity.x * this.PX_PER_M;
+    this.position.y += dt * this.velocity.y * this.PX_PER_M;
 
     // Wheels in relation to the car's origin
+    this.flWheel.rotation = this.deltaWheel;
+    this.frWheel.rotation = this.deltaWheel;
   }
   draw(ctx) {
     ctx.save();
     this.applyTransform(ctx);
-    // Wheels
-    this.flWheel.draw(ctx);
-    this.frWheel.draw(ctx);
-    this.rlWheel.draw(ctx);
-    this.rrWheel.draw(ctx);
     // Car
     this.drawTrans(
       ctx,
@@ -284,6 +294,11 @@ class Car extends Rect {
       this.width,
       this.height,
     );
+    // Wheels
+    this.flWheel.draw(ctx);
+    this.frWheel.draw(ctx);
+    this.rlWheel.draw(ctx);
+    this.rrWheel.draw(ctx);
     ctx.restore();
   }
 }
