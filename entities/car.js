@@ -2,7 +2,6 @@ import { Rect } from "../core/rect.js";
 import { Vector2, dotProduct } from "../core/vector.js";
 import { clamp, lerp, toRad } from "../utilities/utils.js";
 import { Wheel } from "./wheel.js";
-import { RegistrySystem } from "../systems/registry.js";
 
 class Car extends Rect {
   constructor(
@@ -37,38 +36,41 @@ class Car extends Rect {
     this.vel_lateral = 0;
 
     // Wheels
-    this.wheels = new RegistrySystem();
-    const wheelOffset = 5;
-    const wheelRadius = 20;
-    const wheelWidth = 10;
+    this.wheelOffset = 5;
+    this.wheelRadius = 13;
+    this.wheelWidth = 9;
+
+    // Front left wheel
     this.flWheel = new Wheel(
-      this.position.x + this.width - wheelOffset,
-      this.position.y - this.wheelWidth / 2,
-      wheelRadius * 2,
-      wheelWidth,
+      this.width / 2 - this.wheelRadius * 2 - this.wheelOffset,
+      -this.height / 2 - this.wheelWidth / 2,
+      this.wheelRadius * 2,
+      this.wheelWidth,
     );
+
+    // Front right wheel
     this.frWheel = new Wheel(
-      this.position.x + this.width - wheelOffset,
-      this.position.y - this.wheelWidth / 2 + this.height,
-      wheelRadius * 2,
-      wheelWidth,
+      this.width / 2 - this.wheelRadius * 2 - this.wheelOffset,
+      this.height / 2 - this.wheelWidth / 2,
+      this.wheelRadius * 2,
+      this.wheelWidth,
     );
+
+    // Rear left wheel
     this.rlWheel = new Wheel(
-      this.position.x + wheelOffset,
-      this.position.y - this.wheelWidth / 2,
-      wheelRadius * 2,
-      wheelWidth,
+      -this.width / 2 + this.wheelOffset,
+      this.height / 2 - this.wheelWidth / 2,
+      this.wheelRadius * 2,
+      this.wheelWidth,
     );
+
+    // Rear right wheel
     this.rrWheel = new Wheel(
-      this.position.x + wheelOffset,
-      this.position.y + this.height - this.wheelWidth / 2,
-      wheelRadius * 2,
-      wheelWidth,
+      -this.width / 2 + this.wheelOffset,
+      -this.height / 2 - this.wheelWidth / 2,
+      this.wheelRadius * 2,
+      this.wheelWidth,
     );
-    this.wheels.register(this.flWheel);
-    this.wheels.register(this.frWheel);
-    this.wheels.register(this.rlWheel);
-    this.wheels.register(this.rrWheel);
 
     //? Corvette C5 properties
     this.MASS = 1472;
@@ -111,7 +113,7 @@ class Car extends Rect {
   }
   checkSteeringInput(dt) {
     let isTurning = false;
-    const turnRate = 0.2;
+    const turnRate = 0.1;
     const returnRate = turnRate * 2;
 
     if (this.input.isDown("turn_right")) {
@@ -264,15 +266,25 @@ class Car extends Rect {
     this.position.x += dt * this.velocity.x;
     this.position.y += dt * this.velocity.y;
 
-    this.wheels.update(dt);
+    // Wheels in relation to the car's origin
   }
   draw(ctx) {
     ctx.save();
     this.applyTransform(ctx);
-    ctx.fillStyle = this.color;
-    ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+    // Wheels
+    this.flWheel.draw(ctx);
+    this.frWheel.draw(ctx);
+    this.rlWheel.draw(ctx);
+    this.rrWheel.draw(ctx);
+    // Car
+    this.drawTrans(
+      ctx,
+      -this.width / 2,
+      -this.height / 2,
+      this.width,
+      this.height,
+    );
     ctx.restore();
-    this.wheels.draw(ctx);
   }
 }
 
