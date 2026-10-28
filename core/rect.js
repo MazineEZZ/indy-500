@@ -13,6 +13,11 @@ class Rect {
     ctx.fillStyle = this.color;
     ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
   }
+  // For translated rects
+  drawTrans(ctx, x, y, width, height) {
+    ctx.fillStyle = this.color;
+    ctx.fillRect(x, y, width, height);
+  }
   update(dt) {}
   onHit() {}
 }

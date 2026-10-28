@@ -1,6 +1,8 @@
 import { Rect } from "../core/rect.js";
 import { Vector2, dotProduct } from "../core/vector.js";
 import { clamp, lerp, toRad } from "../utilities/utils.js";
+import { Wheel } from "./wheel.js";
+import { RegistrySystem } from "../systems/registry.js";
 
 class Car extends Rect {
   constructor(
@@ -33,6 +35,40 @@ class Car extends Rect {
     this.deltaWheel = 0;
     this.angular = 0;
     this.vel_lateral = 0;
+
+    // Wheels
+    this.wheels = new RegistrySystem();
+    const wheelOffset = 5;
+    const wheelRadius = 20;
+    const wheelWidth = 10;
+    this.flWheel = new Wheel(
+      this.position.x + this.width - wheelOffset,
+      this.position.y - this.wheelWidth / 2,
+      wheelRadius * 2,
+      wheelWidth,
+    );
+    this.frWheel = new Wheel(
+      this.position.x + this.width - wheelOffset,
+      this.position.y - this.wheelWidth / 2 + this.height,
+      wheelRadius * 2,
+      wheelWidth,
+    );
+    this.rlWheel = new Wheel(
+      this.position.x + wheelOffset,
+      this.position.y - this.wheelWidth / 2,
+      wheelRadius * 2,
+      wheelWidth,
+    );
+    this.rrWheel = new Wheel(
+      this.position.x + wheelOffset,
+      this.position.y + this.height - this.wheelWidth / 2,
+      wheelRadius * 2,
+      wheelWidth,
+    );
+    this.wheels.register(this.flWheel);
+    this.wheels.register(this.frWheel);
+    this.wheels.register(this.rlWheel);
+    this.wheels.register(this.rrWheel);
 
     //? Corvette C5 properties
     this.MASS = 1472;
@@ -227,6 +263,8 @@ class Car extends Rect {
     this.velocity.y += dt * this.acceleration.y;
     this.position.x += dt * this.velocity.x;
     this.position.y += dt * this.velocity.y;
+
+    this.wheels.update(dt);
   }
   draw(ctx) {
     ctx.save();
@@ -234,6 +272,7 @@ class Car extends Rect {
     ctx.fillStyle = this.color;
     ctx.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
     ctx.restore();
+    this.wheels.draw(ctx);
   }
 }
 
