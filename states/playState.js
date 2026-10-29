@@ -9,6 +9,7 @@ import {
 import { Player } from "../entities/player.js";
 import { gameSettings } from "../data/settings.js";
 import { Car } from "../entities/car.js";
+import { roundTo } from "../utilities/utils.js";
 
 function setUpPlayState(
   gameState,
@@ -42,10 +43,14 @@ function loadPlayUI(gameState, tooltips, events) {
     3,
   );
 
+  const carSpeedLabel = new Label(20, gameSettings.height - 30 - 40, {
+    text: "0 m/s",
+  });
+
   // Registration
   playUI.register(playerHealthBar);
+  playUI.register(carSpeedLabel);
 
-  // Tooltipss
   tooltips.register(
     playerHealthBar,
     "This is a player's healthbar",
@@ -56,6 +61,11 @@ function loadPlayUI(gameState, tooltips, events) {
   events.on("playerHealthChanged", ({ current, max }) =>
     playerHealthBar.setValue(current, max),
   );
+  events.on("carInfoUpdated", ({ speed }) => {
+    carSpeedLabel.setText(
+      `${speed.toFixed(2)} m/s, ${(speed * 3.6).toFixed(2)} km/h`,
+    );
+  });
 
   return playUI;
 }

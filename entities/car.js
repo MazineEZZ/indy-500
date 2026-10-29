@@ -196,7 +196,13 @@ class Car extends Rect {
       this.WHEEL_RADIUS;
     const powerLimit =
       this.ENGINE_POWER / Math.max(Math.abs(this.vel_forward), 5);
-    const F_DRIVE = this.forward * Math.min(F_RAW, powerLimit, 0.7 * maxGrip);
+
+    const isBraking = this.forward < 0 && this.vel_forward > 0.5;
+
+    driveMag = isBraking ? 0 : this.forward;
+
+    const F_DRIVE = driveMag * Math.min(F_RAW, powerLimit, 0.7 * maxGrip);
+
     this.f_drive.x = F_DRIVE * Math.cos(this.heading);
     this.f_drive.y = F_DRIVE * Math.sin(this.heading);
     return F_DRIVE;
@@ -229,12 +235,25 @@ class Car extends Rect {
     this.f_lateral_f = clamp(-maxLatF, this.f_lateral_f, maxLatF);
     this.f_lateral_r = clamp(-maxLatR, this.f_lateral_r, maxLatR);
   }
+  calcBrakingF() {
+    const F_BRAKING = this.MASS * this.BREAKING_DECEL;
+
+    const isBraking = this.forward < 0 && this.vel_forward > 0.5;
+
+    if (isBraking) {
+      this.f_braking.x = F_BRAKING * -Math.cos(this.heading);
+      this.f_braking.y = F_BRAKING * -Math.sin(this.heading);
+    } else {
+      this.f_braking.x = 0;
+      this.f_braking.y = 0;
+    }
+  }
   updateAccel() {
     // Drag force
-    this.calcDrag();
+    this.calcDragF();
 
     // Braking force
-    this.f_braking = this.MASS * this.BREAKING_DECEL;
+    this.calcBrakingF();
 
     // Drive Force
     const N_axle = (this.MASS * this.GRAVITY) / 2;
@@ -254,15 +273,15 @@ class Car extends Rect {
       this.f_drag.x +
       this.f_rr.x +
       this.f_lateral_f * -Math.sin(this.heading + this.deltaWheel) +
-      this.f_lateral_r * -Math.sin(this.heading);
-    this.f_braking.x;
+      this.f_lateral_r * -Math.sin(this.heading) +
+      this.f_braking.x;
     this.f_total.y =
       this.f_drive.y +
       this.f_drag.y +
       this.f_rr.y +
       this.f_lateral_f * Math.cos(this.heading + this.deltaWheel) +
-      this.f_lateral_r * Math.cos(this.heading);
-    this.f_braking.y;
+      this.f_lateral_r * Math.cos(this.heading) +
+      this.f_braking.y;
 
     // Acceleration
     this.acceleration.x = this.f_total.x / this.MASS;
@@ -292,6 +311,9 @@ class Car extends Rect {
     // Wheels in relation to the car's origin
     this.flWheel.rotation = this.deltaWheel;
     this.frWheel.rotation = this.deltaWheel;
+
+    // Outside interaction
+    this.events.emit("carInfoUpdated", { speed: this.velocity.length() });
   }
   draw(ctx) {
     ctx.save();
