@@ -20,7 +20,7 @@ function setUpPlayState(
   events,
 ) {
   // Entities
-  const car = new Car("car", 20, 20, 120, 50, collisions, inputs, events);
+  const car = new Car("car", 20, 20, 20 * 4, 8 * 4, collisions, inputs, events);
 
   // Registration
   collisions.register(car);

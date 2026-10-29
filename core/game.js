@@ -145,7 +145,7 @@ class Game {
       const dt = (timestamp - this.lastTime) / 1000;
       this.lastTime = timestamp;
 
-      this.update(dt);
+      this.update(Math.min(dt, 1 / 30));
       this.draw();
       this.animationFrameId = requestAnimationFrame(loop);
     };

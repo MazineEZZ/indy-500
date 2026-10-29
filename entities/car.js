@@ -13,6 +13,20 @@ class Car extends Rect {
     collision,
     input,
     events,
+    mass,
+    wheelbase,
+    carLength,
+    carWidth,
+    carHeight,
+    cAlphaF,
+    cAlphaR,
+    tEngine,
+    firstGear,
+    wheelRadius,
+    wheelWidth,
+    wheelOffset,
+    enginePower,
+    brakeStrength,
     color = "red",
   ) {
     super(type, x, y, width, height, color);
@@ -35,10 +49,39 @@ class Car extends Rect {
     this.angular = 0;
     this.vel_lateral = 0;
 
+    //? Per car properties
+    this.MASS = 1472;
+    this.WHEELBASE = 2.65;
+    this.LENGTH = 4.566;
+    this.WIDTH = 1.869;
+    this.C_ALPHA_F = 72500;
+    this.C_ALPHA_R = 72500;
+    this.T_ENGINE = 508;
+    this.FIRST_GEAR = 2.66;
+    this.WHEEL_RADIUS = 0.33;
+    this.WHEEL_WIDTH = 0.2159;
+    this.WHEEL_OFFSET = 0.15;
+    this.ENGINE_POWER = 250000;
+    this.BRAKE_STRENGTH = 0.85;
+
+    this.PX_PER_M = this.width / this.LENGTH;
+
+    // Terrain Constants
+    this.ASPHALT_FRICTION = 1; // mu
+    this.currTerrFrict = this.ASPHALT_FRICTION;
+
+    // General Properties
+    this.GRAVITY = 9.81; // m/s^2
+    this.C_DRAG = 0.5 * 0.3 * 2.2 * 1.29;
+    this.DIFF_RATIO = 3.42;
+    this.TRANS_EFFIC = 0.75;
+    this.MAX_WHEEL_ROTATION = toRad(24); // 24 degrees
+    this.LOW_SPEED_THRESHOLD = 2; // m/s
+
     // Wheels
-    this.wheelOffset = 5;
-    this.wheelRadius = 13;
-    this.wheelWidth = 9;
+    this.wheelOffset = (this.WHEEL_OFFSET * this.LENGTH * this.PX_PER_M) / 2;
+    this.wheelRadius = this.WHEEL_RADIUS * this.PX_PER_M;
+    this.wheelWidth = this.WHEEL_WIDTH * this.PX_PER_M;
 
     // Front left wheel
     this.flWheel = new Wheel(
@@ -71,31 +114,6 @@ class Car extends Rect {
       this.wheelRadius * 2,
       this.wheelWidth,
     );
-
-    //? Corvette C5 properties
-    this.MASS = 1472;
-    this.WHEELBASE = 2.5;
-    this.LENGTH = 4.566;
-    this.WIDTH = 1.869;
-
-    this.PX_PER_M = this.width / this.LENGTH;
-
-    // Terrain Constants
-    this.ASPHALT_FRICTION = 1; // mu
-
-    this.GRAVITY = 9.81; // m/s^2
-    this.C_DRAG = 0.5 * 0.3 * 2.2 * 1.29;
-    this.C_ALPHA_F = 72500;
-    this.C_ALPHA_R = 72500;
-    this.BREAKING_DECEL = 8;
-    this.T_ENGINE = 508;
-    this.FIRST_GEAR = 2.66;
-    this.DIFF_RATIO = 3.42;
-    this.WHEEL_RADIUS = 0.33;
-    this.TRANS_EFFIC = 0.75;
-    this.ENGINE_POWER = 250000;
-    this.MAX_WHEEL_ROTATION = toRad(24); // 24 degrees
-    this.LOW_SPEED_THRESHOLD = 2; // m/s
   }
   applyTransform(ctx) {
     ctx.translate(
@@ -114,7 +132,7 @@ class Car extends Rect {
       this.forward = -1;
     }
   }
-  checkSteeringInput(dt) {
+  checkSteeringInput(dt, maxGrip) {
     let isTurning = false;
     const turnRate = 1.5;
     const returnRate = turnRate * 2;
@@ -135,7 +153,6 @@ class Car extends Rect {
     }
 
     const speed = Math.max(this.velocity.length(), 1);
-    const maxGrip = (this.ASPHALT_FRICTION * (this.MASS * this.GRAVITY)) / 2;
 
     // Wheel angle that follows the tightest circle the tires can hold at this speed
     const gripAngle = Math.atan(
@@ -190,16 +207,14 @@ class Car extends Rect {
     this.f_drag.x = -this.C_DRAG * this.velocity.length() * this.velocity.x;
     this.f_drag.y = -this.C_DRAG * this.velocity.length() * this.velocity.y;
   }
-  calcDriveF(N_axle, maxGrip) {
+  calcDriveF(maxGrip) {
     let F_RAW =
       (this.T_ENGINE * this.FIRST_GEAR * this.DIFF_RATIO * this.TRANS_EFFIC) /
       this.WHEEL_RADIUS;
     const powerLimit =
       this.ENGINE_POWER / Math.max(Math.abs(this.vel_forward), 5);
 
-    const isBraking = this.forward < 0 && this.vel_forward > 0.5;
-
-    driveMag = isBraking ? 0 : this.forward;
+    const driveMag = this.isBraking ? 0 : this.forward;
 
     const F_DRIVE = driveMag * Math.min(F_RAW, powerLimit, 0.7 * maxGrip);
 
@@ -212,11 +227,17 @@ class Car extends Rect {
     this.f_rr.x = -this.C_RR * this.velocity.x;
     this.f_rr.y = -this.C_RR * this.velocity.y;
   }
-  calcLateralF(maxGrip, F_DRIVE) {
+  calcLateralF(maxGrip, F_DRIVE, F_BRAKING) {
+    // Max grip is the budget when driving
+    // Braking force is the other budget
+    // if the car is braking to implement drifting
     this.calcSlip();
 
-    const maxLatF = maxGrip;
-    const maxLatR = Math.sqrt(Math.max(0, maxGrip ** 2 - F_DRIVE ** 2));
+    const budget = this.isBraking ? F_BRAKING / 2 : F_DRIVE;
+    const maxLatF = this.isBraking
+      ? Math.sqrt(Math.max(0, maxGrip ** 2 - budget ** 2))
+      : maxGrip;
+    const maxLatR = Math.sqrt(Math.max(0, maxGrip ** 2 - budget ** 2));
 
     // Blending Factor
     const t = clamp(0, this.velocity.length() / this.LOW_SPEED_THRESHOLD, 1);
@@ -235,37 +256,34 @@ class Car extends Rect {
     this.f_lateral_f = clamp(-maxLatF, this.f_lateral_f, maxLatF);
     this.f_lateral_r = clamp(-maxLatR, this.f_lateral_r, maxLatR);
   }
-  calcBrakingF() {
-    const F_BRAKING = this.MASS * this.BREAKING_DECEL;
+  calcBrakingF(maxGrip) {
+    const F_BRAKING = maxGrip * 2 * this.BRAKE_STRENGTH;
 
-    const isBraking = this.forward < 0 && this.vel_forward > 0.5;
-
-    if (isBraking) {
+    if (this.isBraking) {
       this.f_braking.x = F_BRAKING * -Math.cos(this.heading);
       this.f_braking.y = F_BRAKING * -Math.sin(this.heading);
     } else {
       this.f_braking.x = 0;
       this.f_braking.y = 0;
     }
+
+    return F_BRAKING;
   }
-  updateAccel() {
+  updateAccel(maxGrip) {
     // Drag force
     this.calcDragF();
 
     // Braking force
-    this.calcBrakingF();
+    const F_BRAKING = this.calcBrakingF(maxGrip);
 
     // Drive Force
-    const N_axle = (this.MASS * this.GRAVITY) / 2;
-    const maxGrip = this.ASPHALT_FRICTION * N_axle;
-
-    const F_DRIVE = this.calcDriveF(N_axle, maxGrip);
+    const F_DRIVE = this.calcDriveF(maxGrip);
 
     // Rolling Resistance Forces
     this.calcRRF();
 
     // Lateral Forces
-    this.calcLateralF(maxGrip, F_DRIVE);
+    this.calcLateralF(maxGrip, F_DRIVE, F_BRAKING);
 
     // Total Forces
     this.f_total.x =
@@ -288,16 +306,22 @@ class Car extends Rect {
     this.acceleration.y = this.f_total.y / this.MASS;
   }
   update(dt) {
+    const maxGrip = (this.currTerrFrict * (this.MASS * this.GRAVITY)) / 2;
+
     this.checkDriveInput();
-    this.checkSteeringInput(dt);
+    this.checkSteeringInput(dt, maxGrip);
 
     // Update speed
     this.vel_forward =
       this.velocity.x * Math.cos(this.heading) +
       this.velocity.y * Math.sin(this.heading);
 
+    // Car states
+    this.isBraking = this.forward < 0 && this.vel_forward > 0.5;
+    // this.isReversing...
+
     // Acceleration
-    this.updateAccel();
+    this.updateAccel(maxGrip);
 
     // Update Angular Velocity & Heading
     this.updateRotationKin(dt);
