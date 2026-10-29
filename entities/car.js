@@ -186,18 +186,11 @@ class Car extends Rect {
       Math.abs(this.vel_forward),
     );
   }
-  updateAccel() {
-    // Drag force
+  calcDragF() {
     this.f_drag.x = -this.C_DRAG * this.velocity.length() * this.velocity.x;
     this.f_drag.y = -this.C_DRAG * this.velocity.length() * this.velocity.y;
-
-    // Braking force
-    this.f_braking = this.MASS * this.BREAKING_DECEL;
-
-    // Drive Force
-    const N_axle = (this.MASS * this.GRAVITY) / 2;
-    const maxGrip = this.ASPHALT_FRICTION * N_axle;
-
+  }
+  calcDriveF(N_axle, maxGrip) {
     let F_RAW =
       (this.T_ENGINE * this.FIRST_GEAR * this.DIFF_RATIO * this.TRANS_EFFIC) /
       this.WHEEL_RADIUS;
@@ -206,13 +199,14 @@ class Car extends Rect {
     const F_DRIVE = this.forward * Math.min(F_RAW, powerLimit, 0.7 * maxGrip);
     this.f_drive.x = F_DRIVE * Math.cos(this.heading);
     this.f_drive.y = F_DRIVE * Math.sin(this.heading);
-
-    // Rolling Resistance Forces
+    return F_DRIVE;
+  }
+  calcRRF() {
     this.C_RR = this.C_DRAG * 30;
     this.f_rr.x = -this.C_RR * this.velocity.x;
     this.f_rr.y = -this.C_RR * this.velocity.y;
-
-    // Lateral Forces
+  }
+  calcLateralF(maxGrip, F_DRIVE) {
     this.calcSlip();
 
     const maxLatF = maxGrip;
@@ -234,25 +228,41 @@ class Car extends Rect {
     // Tire force saturation
     this.f_lateral_f = clamp(-maxLatF, this.f_lateral_f, maxLatF);
     this.f_lateral_r = clamp(-maxLatR, this.f_lateral_r, maxLatR);
+  }
+  updateAccel() {
+    // Drag force
+    this.calcDrag();
 
-    // Longitudinal Forces
+    // Braking force
+    this.f_braking = this.MASS * this.BREAKING_DECEL;
+
+    // Drive Force
+    const N_axle = (this.MASS * this.GRAVITY) / 2;
+    const maxGrip = this.ASPHALT_FRICTION * N_axle;
+
+    const F_DRIVE = this.calcDriveF(N_axle, maxGrip);
+
+    // Rolling Resistance Forces
+    this.calcRRF();
+
+    // Lateral Forces
+    this.calcLateralF(maxGrip, F_DRIVE);
+
+    // Total Forces
     this.f_total.x =
       this.f_drive.x +
       this.f_drag.x +
       this.f_rr.x +
       this.f_lateral_f * -Math.sin(this.heading + this.deltaWheel) +
       this.f_lateral_r * -Math.sin(this.heading);
+    this.f_braking.x;
     this.f_total.y =
       this.f_drive.y +
       this.f_drag.y +
       this.f_rr.y +
       this.f_lateral_f * Math.cos(this.heading + this.deltaWheel) +
       this.f_lateral_r * Math.cos(this.heading);
-
-    // if (this.forward < 0) {
-    //   this.f_total.x -= this.f_braking * Math.sin();
-    //   this.f_total.y -= this.f_braking;
-    // }
+    this.f_braking.y;
 
     // Acceleration
     this.acceleration.x = this.f_total.x / this.MASS;
