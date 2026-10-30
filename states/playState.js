@@ -10,6 +10,7 @@ import { Player } from "../entities/player.js";
 import { gameSettings } from "../data/settings.js";
 import { Car } from "../entities/car.js";
 import { roundTo } from "../utilities/utils.js";
+import { carData } from "../data/data.js";
 
 function setUpPlayState(
   gameState,
@@ -20,7 +21,16 @@ function setUpPlayState(
   events,
 ) {
   // Entities
-  const car = new Car("car", 20, 20, 20 * 4, 8 * 4, collisions, inputs, events);
+  const car = new Car(
+    "car",
+    20,
+    20,
+    20,
+    collisions,
+    inputs,
+    events,
+    carData.corvette,
+  );
 
   // Registration
   collisions.register(car);

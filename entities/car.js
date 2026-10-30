@@ -8,28 +8,30 @@ class Car extends Rect {
     type,
     x,
     y,
-    width,
-    height,
+    scale,
     collision,
     input,
     events,
-    mass,
-    wheelbase,
-    carLength,
-    carWidth,
-    carHeight,
-    cAlphaF,
-    cAlphaR,
-    tEngine,
-    firstGear,
-    wheelRadius,
-    wheelWidth,
-    wheelOffset,
-    enginePower,
-    brakeStrength,
-    color = "red",
+    {
+      mass,
+      wheelbase,
+      carLength,
+      carWidth,
+      carHeight,
+      cAlphaF,
+      cAlphaR,
+      tEngine,
+      firstGear,
+      wheelRadius,
+      wheelWidth,
+      wheelOffset,
+      enginePower,
+      brakeStrength,
+    } = {},
   ) {
-    super(type, x, y, width, height, color);
+    const width = carLength * scale;
+    const height = carWidth * scale;
+    super(type, x, y, width, height, "red");
     this.collision = collision;
     this.input = input;
     this.events = events;
@@ -50,19 +52,19 @@ class Car extends Rect {
     this.vel_lateral = 0;
 
     //? Per car properties
-    this.MASS = 1472;
-    this.WHEELBASE = 2.65;
-    this.LENGTH = 4.566;
-    this.WIDTH = 1.869;
-    this.C_ALPHA_F = 72500;
-    this.C_ALPHA_R = 72500;
-    this.T_ENGINE = 508;
-    this.FIRST_GEAR = 2.66;
-    this.WHEEL_RADIUS = 0.33;
-    this.WHEEL_WIDTH = 0.2159;
-    this.WHEEL_OFFSET = 0.15;
-    this.ENGINE_POWER = 250000;
-    this.BRAKE_STRENGTH = 0.85;
+    this.MASS = mass;
+    this.WHEELBASE = wheelbase;
+    this.LENGTH = carLength;
+    this.WIDTH = carWidth;
+    this.C_ALPHA_F = cAlphaF;
+    this.C_ALPHA_R = cAlphaR;
+    this.T_ENGINE = tEngine;
+    this.FIRST_GEAR = firstGear;
+    this.WHEEL_RADIUS = wheelRadius;
+    this.WHEEL_WIDTH = wheelWidth;
+    this.WHEEL_OFFSET = wheelOffset;
+    this.ENGINE_POWER = enginePower;
+    this.BRAKE_STRENGTH = brakeStrength;
 
     this.PX_PER_M = this.width / this.LENGTH;
 
