@@ -52,6 +52,7 @@ function render() {
   const gameContainer = renderGame();
 
   document.body.appendChild(gameContainer);
+  document.body.style.backgroundColor = "black";
 }
 
 export { render };

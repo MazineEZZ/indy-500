@@ -52,4 +52,9 @@ const carData = {
   },
 };
 
-export { carData };
+const paths = {
+  tileset: "tilesets/tileset.png",
+  track1: "tilesets/track1.json",
+};
+
+export { carData, paths };

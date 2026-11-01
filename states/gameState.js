@@ -18,31 +18,15 @@ const pausedState = new State(
     onEnter: (events) => {
       events.emit("gamePaused");
     },
-    update: (dt, game) => {
-      game.pauseUI.update(dt, game.clientMouse);
-    },
-    draw: (game) => {
-      game.pauseUI.draw(game.ctx);
-    },
   },
 );
-const menuState = new State(
-  [
-    {
-      event: "gameStarted",
-      state: "play",
-      action: "clear",
-    },
-  ],
+const menuState = new State([
   {
-    update: (dt, game) => {
-      game.menuUI.update(dt, game.clientMouse);
-    },
-    draw: (game) => {
-      game.menuUI.draw(game.ctx);
-    },
+    event: "gameStarted",
+    state: "play",
+    action: "clear",
   },
-);
+]);
 const playState = new State(
   [
     {
@@ -53,21 +37,6 @@ const playState = new State(
   ],
   {
     onEnter: (events) => events.emit("gameUnpaused"),
-    update: (dt, game) => {
-      // Entities
-      game.entities.update(dt);
-      // UI
-      game.playUI.update(dt, game.clientMouse);
-    },
-    draw: (game) => {
-      // Entities
-      game.entities.draw(game.ctx);
-      // Debug
-      game.debugOverlay.drawHitboxes(game.ctx);
-      // game.debugOverlay.drawGrid(game.ctx);
-      // UI
-      game.playUI.draw(game.ctx);
-    },
   },
 );
 

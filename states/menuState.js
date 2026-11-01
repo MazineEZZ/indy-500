@@ -9,12 +9,11 @@ import {
 import { gameSettings } from "../data/settings.js";
 
 function setUpMenuState(gameState, events) {
-  return loadMenuUI(gameState, events);
+  gameState.states.menu.ui = loadMenuUI(gameState, events);
 }
 
 function loadMenuUI(gameState, events) {
-  const menuUI = new UILayer();
-  gameState.states.menu.ui = menuUI;
+  const ui = new UILayer();
 
   const title = new Label(gameSettings.width / 2, 200, {
     text: "Menu!",
@@ -40,17 +39,17 @@ function loadMenuUI(gameState, events) {
     },
   );
 
-  menuUI.register(title);
-  menuUI.register(checkbox);
-  menuUI.register(slider);
-  menuUI.register(startGameBtn);
+  ui.register(title);
+  ui.register(checkbox);
+  ui.register(slider);
+  ui.register(startGameBtn);
 
   events.on("gameStarted", (event) => {
     gameState.handleEvent(event);
     events.emit("stateChanged");
   });
 
-  return menuUI;
+  return ui;
 }
 
 export { setUpMenuState };

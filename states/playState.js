@@ -11,6 +11,8 @@ import { gameSettings } from "../data/settings.js";
 import { Car } from "../entities/car.js";
 import { roundTo } from "../utilities/utils.js";
 import { carData } from "../data/data.js";
+import { TileMap } from "../systems/tileMap.js";
+import { RegistrySystem } from "../systems/registry.js";
 
 function setUpPlayState(
   gameState,
@@ -19,7 +21,10 @@ function setUpPlayState(
   inputs,
   tooltips,
   events,
+  assetManager,
 ) {
+  const world = new RegistrySystem();
+
   // Entities
   const car = new Car(
     "car",
@@ -32,17 +37,26 @@ function setUpPlayState(
     carData.corvette,
   );
 
+  // Map
+  const tileMap = new TileMap(
+    gameSettings.cellSize,
+    assetManager.getData("track1"),
+    assetManager.getImage("tileset"),
+  );
+
   // Registration
   collisions.register(car);
   entities.register(car);
+  world.register(tileMap);
+  world.register(entities);
 
-  // UI
-  return loadPlayUI(gameState, tooltips, events);
+  gameState.states.play.world = world;
+  gameState.states.play.ui = loadPlayUI(gameState, tooltips, events);
 }
 
 function loadPlayUI(gameState, tooltips, events) {
-  const playUI = new UILayer();
-  gameState.states.play.ui = playUI;
+  const ui = new UILayer();
+  gameState.states.play.ui = ui;
 
   // Element
   const playerHealthBar = new ResourceBar(
@@ -58,8 +72,8 @@ function loadPlayUI(gameState, tooltips, events) {
   });
 
   // Registration
-  playUI.register(playerHealthBar);
-  playUI.register(carSpeedLabel);
+  ui.register(playerHealthBar);
+  ui.register(carSpeedLabel);
 
   tooltips.register(
     playerHealthBar,
@@ -77,7 +91,7 @@ function loadPlayUI(gameState, tooltips, events) {
     );
   });
 
-  return playUI;
+  return ui;
 }
 
 export { setUpPlayState };

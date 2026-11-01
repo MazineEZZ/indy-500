@@ -1,11 +1,22 @@
 class State {
-  constructor(transitions, { onEnter, onExit, update, draw, ui } = {}) {
+  constructor(transitions, { onEnter, onExit, update, draw, ui, world } = {}) {
     this.transitions = transitions;
     this.onEnter = onEnter || (() => {});
     this.onExit = onExit || (() => {});
-    this.update = update || (() => {});
-    this.draw = draw || (() => {});
+    this.update =
+      update ||
+      ((dt, clientMouse) => {
+        if (this.world) this.world.update(dt, clientMouse);
+        if (this.ui) this.ui.update(dt, clientMouse);
+      });
+    this.draw =
+      draw ||
+      ((ctx) => {
+        if (this.world) this.world.draw(ctx);
+        if (this.ui) this.ui.draw(ctx);
+      });
     this.ui = ui || null;
+    this.world = world || null;
   }
 }
 

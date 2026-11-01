@@ -9,12 +9,11 @@ import {
 import { gameSettings } from "../data/settings.js";
 
 function setUpPauseState(gameState, events) {
-  return loadPauseUI(gameState, events);
+  gameState.states.paused.ui = loadPauseUI(gameState, events);
 }
 
 function loadPauseUI(gameState, events) {
-  const pauseUI = new UILayer();
-  gameState.states.paused.ui = pauseUI;
+  const ui = new UILayer();
 
   // Elements
   const pauseText = new Label(gameSettings.width / 2, gameSettings.height / 2, {
@@ -42,8 +41,8 @@ function loadPauseUI(gameState, events) {
   );
 
   // Registration
-  pauseUI.register(pauseText);
-  pauseUI.register(menuBtn);
+  ui.register(pauseText);
+  ui.register(menuBtn);
 
   // Events
   events.on("gameMenu", (event) => {
@@ -55,7 +54,7 @@ function loadPauseUI(gameState, events) {
     events.emit("stateChanged");
   });
 
-  return pauseUI;
+  return ui;
 }
 
 export { setUpPauseState };

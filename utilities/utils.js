@@ -23,6 +23,21 @@ function isLetter(char) {
   return /^\p{L}$/u.test(char);
 }
 
+function construct2DArray(original, m, n) {
+  // Construct a 2D array out of a 1D array and m: rows and n: cols
+  let arr = [];
+  let ctr = 0;
+  for (let i = 0; i < m; i++) {
+    let row = [];
+    for (let j = 0; j < n; j++) {
+      row.push(original[ctr]);
+      ctr++;
+    }
+    arr.push(row);
+  }
+  return arr;
+}
+
 function colorToRGB(color) {
   const tempEl = document.createElement("div");
   tempEl.style.color = color;
@@ -69,4 +84,5 @@ export {
   lerp,
   inverseLerp,
   remap,
+  construct2DArray,
 };

@@ -20,9 +20,7 @@ class TileMap {
       this.mapHeight,
       this.mapWidth,
     );
-    this.tileMap = this.combineTileData(tileMapJSON);
     this.tileSetIMG = tileSetIMG;
-    // Markers
   }
   mapPathToCoords(path) {
     return path.map((obj) => ({

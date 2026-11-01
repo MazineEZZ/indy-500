@@ -13,6 +13,7 @@ import { ClientMouse } from "../systems/clientMouse.js";
 import { setUpPlayState } from "../states/playState.js";
 import { setUpMenuState } from "../states/menuState.js";
 import { setUpPauseState } from "../states/pauseState.js";
+import { paths } from "../data/data.js";
 
 class Game {
   constructor(canvas) {
@@ -101,27 +102,32 @@ class Game {
   }
   async init() {
     // Load assets
-    await Promise.all([]);
-
+    await Promise.all([
+      this.assetManager.loadImage("tileset", paths.tileset),
+      this.assetManager.loadData("track1", paths.track1),
+    ]);
     // Game States
-    this.playUI = setUpPlayState(
+    setUpPlayState(
       this.gameState,
       this.entities,
       this.collisions,
       this.inputs,
       this.tooltips,
       this.events,
+      this.assetManager,
     );
-    this.pauseUI = setUpPauseState(this.gameState, this.events);
-    this.menuUI = setUpMenuState(this.gameState, this.events);
+    setUpPauseState(this.gameState, this.events);
+    setUpMenuState(this.gameState, this.events);
 
     this.setUpSignals();
   }
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillStyle = "white";
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     for (const state of this.gameState.stack) {
-      state.draw(this);
+      state.draw(this.ctx);
     }
 
     // debug
@@ -130,7 +136,7 @@ class Game {
     this.tooltips.draw(this.ctx);
   }
   update(dt) {
-    this.gameState.peek().update(dt, this);
+    this.gameState.peek().update(dt, this.clientMouse);
 
     // Debug
     this.debugOverlay.update(dt, this.clientMouse);
