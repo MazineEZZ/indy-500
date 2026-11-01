@@ -1,6 +1,8 @@
 import { clamp, construct2DArray } from "../utilities/utils.js";
 import { gameSettings } from "../data/settings.js";
 
+// TileMap needs a lot of work
+
 class TileMap {
   constructor(cellSize, tileMapJSON, tileSetIMG) {
     this.cellSize = cellSize;
@@ -20,6 +22,7 @@ class TileMap {
       this.mapHeight,
       this.mapWidth,
     );
+    this.tileMap = this.combineTileData(this.tileMap, tileMapJSON);
     this.tileSetIMG = tileSetIMG;
   }
   mapPathToCoords(path) {
@@ -50,16 +53,31 @@ class TileMap {
   getLayerData(layers, key) {
     return this.getLayer(layers, key).data;
   }
+  combineTileData(tileMap, json) {
+    const boolGid = json.tilesets[0].firstgid;
+    const track = this.getLayerData(json.layers, "track");
+
+    let ctr = -1;
+    return tileMap.map((row) => {
+      return row.map((tile) => {
+        ctr++;
+        return {
+          ground: tile,
+          track: track[ctr],
+        };
+      });
+    });
+  }
   draw(ctx) {
+    ctx.save();
     for (let row = 0; row < this.mapHeight; row++) {
       for (let col = 0; col < this.mapWidth; col++) {
-        const baseGid = this.tileMap[row][col].base;
-        const propsGid = this.tileMap[row][col].props;
+        const groundGid = this.tileMap[row][col].ground;
+        const trackGid = this.tileMap[row][col].track;
 
         // Skip over empty tiles
-        if (baseGid === 0) continue;
-
-        let localId = baseGid - this.firstgid;
+        if (groundGid === 0) continue;
+        let localId = groundGid - this.firstgid;
         let srcCol = localId % this.columns;
         let srcRow = Math.floor(localId / this.columns);
 
@@ -75,9 +93,9 @@ class TileMap {
           this.cellSize,
         );
 
-        if (propsGid === 0) continue;
+        if (trackGid === 0) continue;
 
-        localId = propsGid - this.firstgid;
+        localId = trackGid - this.firstgid;
         srcCol = localId % this.columns;
         srcRow = Math.floor(localId / this.columns);
 
@@ -94,6 +112,7 @@ class TileMap {
         );
       }
     }
+    ctx.restore();
   }
 }
 

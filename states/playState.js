@@ -30,7 +30,7 @@ function setUpPlayState(
     "car",
     20,
     20,
-    20,
+    8,
     collisions,
     inputs,
     events,
@@ -44,9 +44,11 @@ function setUpPlayState(
     assetManager.getImage("tileset"),
   );
 
-  // Registration
+  // Entity Registration
   collisions.register(car);
   entities.register(car);
+
+  // World Registration
   world.register(tileMap);
   world.register(entities);
 

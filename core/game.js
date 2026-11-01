@@ -19,7 +19,7 @@ class Game {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
-    this.ctx.imageSmoothingEnabled = false;
+    this.ctx.imageSmoothingEnabled = true;
     this.collisions = new CollisionSystem();
     this.entities = new EntityRegistry();
     this.audio = new AudioSystem();
