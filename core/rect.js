@@ -8,6 +8,7 @@ class Rect {
     this.color = color;
     this.type = type;
     this.zIndex = 1;
+    this.rotation;
   }
   draw(ctx) {
     ctx.fillStyle = this.color;

@@ -13,6 +13,7 @@ import { roundTo } from "../utilities/utils.js";
 import { carData } from "../data/data.js";
 import { TileMap } from "../systems/tileMap.js";
 import { RegistrySystem } from "../systems/registry.js";
+import { DebugOverlay } from "../systems/debug.js";
 
 function setUpPlayState(
   gameState,
@@ -44,6 +45,8 @@ function setUpPlayState(
     assetManager.getImage("tileset"),
   );
 
+  const debug = new DebugOverlay(entities, collisions, inputs);
+
   // Entity Registration
   collisions.register(car);
   entities.register(car);
@@ -51,6 +54,7 @@ function setUpPlayState(
   // World Registration
   world.register(tileMap);
   world.register(entities);
+  world.register(debug);
 
   gameState.states.play.world = world;
   gameState.states.play.ui = loadPlayUI(gameState, tooltips, events);

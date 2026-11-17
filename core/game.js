@@ -5,7 +5,6 @@ import { Inputs } from "../systems/inputs.js";
 import { EventBus } from "../systems/events.js";
 import { AudioSystem } from "../systems/audio.js";
 import { TooltipManager, Tooltip } from "../ui/tooltip.js";
-import { DebugOverlay } from "../systems/debug.js";
 import { AssetManager } from "../systems/assets.js";
 import { pausedState, playState, menuState } from "../states/gameState.js";
 import { StateManager } from "../systems/states.js";
@@ -30,11 +29,6 @@ class Game {
     this.animationFrameId = null;
     this.clientMouse = new ClientMouse(this.canvas);
     this.inputs = new Inputs(inputBindings);
-    this.debugOverlay = new DebugOverlay(
-      this.entities,
-      this.collisions,
-      this.inputs,
-    );
 
     // Game State
     this.gameState = new StateManager(
@@ -130,16 +124,12 @@ class Game {
       state.draw(this.ctx);
     }
 
-    // debug
-    this.debugOverlay.drawScreenStats(this.ctx);
     // Tooltip
     this.tooltips.draw(this.ctx);
   }
   update(dt) {
     this.gameState.peek().update(dt, this.clientMouse);
 
-    // Debug
-    this.debugOverlay.update(dt, this.clientMouse);
     // Tooltip
     this.tooltips.update(dt, this.clientMouse, this.gameState.peek());
     // Reset Mouse Click Pos
