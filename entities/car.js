@@ -69,7 +69,7 @@ class Car extends Rect {
     this.PX_PER_M = this.width / this.LENGTH;
 
     // Terrain Constants
-    this.ASPHALT_FRICTION = 1; // mu
+    this.ASPHALT_FRICTION = 1.5; // mu
     this.currTerrFrict = this.ASPHALT_FRICTION;
 
     // General Properties
@@ -81,9 +81,9 @@ class Car extends Rect {
     this.LOW_SPEED_THRESHOLD = 2; // m/s
 
     // Wheels
-    this.wheelOffset = (this.WHEEL_OFFSET * this.LENGTH * this.PX_PER_M) / 2;
-    this.wheelRadius = this.WHEEL_RADIUS * this.PX_PER_M;
-    this.wheelWidth = this.WHEEL_WIDTH * this.PX_PER_M;
+    this.wheelOffset = (this.WHEEL_OFFSET * this.LENGTH * scale) / 2;
+    this.wheelRadius = this.WHEEL_RADIUS * scale * 1.2;
+    this.wheelWidth = this.WHEEL_WIDTH * scale * 1.5;
 
     // Front left wheel
     this.flWheel = new Wheel(

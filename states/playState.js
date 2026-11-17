@@ -28,13 +28,13 @@ function setUpPlayState(
   // Entities
   const car = new Car(
     "car",
-    20,
-    20,
-    8,
+    16 * gameSettings.cellSize,
+    4 * gameSettings.cellSize + gameSettings.cellSize / 4,
+    10,
     collisions,
     inputs,
     events,
-    carData.corvette,
+    carData.clio,
   );
 
   // Map
