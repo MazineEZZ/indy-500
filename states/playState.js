@@ -26,6 +26,15 @@ function setUpPlayState(
 ) {
   const world = new RegistrySystem();
 
+  // Map
+  const tileMap = new TileMap(
+    gameSettings.cellSize,
+    assetManager.getData("track1"),
+    assetManager.getImage("tileset"),
+  );
+
+  const debug = new DebugOverlay(entities, collisions, inputs);
+
   // Entities
   const car = new Car(
     "car",
@@ -35,17 +44,9 @@ function setUpPlayState(
     collisions,
     inputs,
     events,
+    tileMap,
     carData.clio,
   );
-
-  // Map
-  const tileMap = new TileMap(
-    gameSettings.cellSize,
-    assetManager.getData("track1"),
-    assetManager.getImage("tileset"),
-  );
-
-  const debug = new DebugOverlay(entities, collisions, inputs);
 
   // Entity Registration
   collisions.register(car);

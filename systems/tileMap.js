@@ -24,6 +24,8 @@ class TileMap {
     );
     this.tileMap = this.combineTileData(this.tileMap, tileMapJSON);
     this.tileSetIMG = tileSetIMG;
+    const surfacesData = tileMapJSON.tilesets[1];
+    this.surfFirstGid = surfacesData.firstgid;
   }
   mapPathToCoords(path) {
     return path.map((obj) => ({
@@ -53,9 +55,17 @@ class TileMap {
   getLayerData(layers, key) {
     return this.getLayer(layers, key).data;
   }
+  getSurfaceType(row, col) {
+    if (row < 0 || row >= this.mapHeight || col < 0 || col >= this.mapWidth) {
+      return -1;
+    }
+    const typeGid = this.tileMap[row][col].type;
+    return typeGid === 0 ? 0 : typeGid - this.surfFirstGid;
+  }
   combineTileData(tileMap, json) {
     const boolGid = json.tilesets[0].firstgid;
     const track = this.getLayerData(json.layers, "track");
+    const type = this.getLayerData(json.layers, "type");
 
     let ctr = -1;
     return tileMap.map((row) => {
@@ -64,6 +74,7 @@ class TileMap {
         return {
           ground: tile,
           track: track[ctr],
+          type: type[ctr],
         };
       });
     });

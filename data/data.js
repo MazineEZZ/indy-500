@@ -57,4 +57,10 @@ const paths = {
   track1: "tilesets/track1.json",
 };
 
+const surfaces = {
+  0: { name: "grass", coef: 0.35, crr: 0.06 },
+  2: { name: "sand", coef: 0.55, crr: 0.1 },
+  1: { name: "asphalt", coef: 1, crr: 0.01 },
+};
+
 export { carData, paths };

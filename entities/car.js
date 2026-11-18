@@ -1,5 +1,6 @@
 import { Rect } from "../core/rect.js";
 import { Vector2, dotProduct } from "../core/vector.js";
+import { gameSettings } from "../data/settings.js";
 import { clamp, lerp, toRad } from "../utilities/utils.js";
 import { Wheel } from "./wheel.js";
 
@@ -12,6 +13,7 @@ class Car extends Rect {
     collision,
     input,
     events,
+    tileMap,
     {
       mass,
       wheelbase,
@@ -35,6 +37,7 @@ class Car extends Rect {
     this.collision = collision;
     this.input = input;
     this.events = events;
+    this.tileMap = tileMap;
 
     this.velocity = new Vector2();
     this.acceleration = new Vector2();
@@ -337,6 +340,15 @@ class Car extends Rect {
     // Wheels in relation to the car's origin
     this.flWheel.rotation = this.deltaWheel;
     this.frWheel.rotation = this.deltaWheel;
+
+    const centerX = this.position.x + this.width / 2;
+    const centerY = this.position.y + this.height / 2;
+    console.log(
+      this.tileMap.getSurfaceType(
+        Math.floor(centerY / gameSettings.cellSize),
+        Math.floor(centerX / gameSettings.cellSize),
+      ),
+    );
 
     // Outside interaction
     this.events.emit("carInfoUpdated", { speed: this.velocity.length() });
